@@ -38,8 +38,8 @@ def build_model(input_data):
         with open('ensembleBBB.pkl', 'wb') as file:
             file.write(response.content)
 
-# Load the model
-load_model = pickle.load(open('ensembleBBB.pkl', 'rb'))
+        # Load the model
+        load_model = pickle.load(open('ensembleBBB.pkl', 'rb'))
         load_model = pickle.load(open('ensembleBBB.pkl', 'rb'))
         # Apply model to make predictions
         prediction = load_model.predict(input_data)
