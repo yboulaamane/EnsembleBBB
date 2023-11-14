@@ -5,6 +5,7 @@ import subprocess
 import os
 import base64
 import pickle
+import jdk
 
 # Molecular descriptor calculator
 def calculate_descriptors():
