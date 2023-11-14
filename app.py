@@ -31,12 +31,12 @@ def file_download(df):
 def build_model(input_data):
     try:
         # Dropbox shareable link to the model file
-dropbox_link = 'https://www.dropbox.com/scl/fi/6h79b2crwxwo1zpi9kx6a/ensembleBBB.pkl?rlkey=pcy8l762k0mzqhl415f61ed8f&dl=0'
+        dropbox_link = 'https://www.dropbox.com/scl/fi/6h79b2crwxwo1zpi9kx6a/ensembleBBB.pkl?rlkey=pcy8l762k0mzqhl415f61ed8f&dl=0'
 
-# Download the model file
-response = requests.get(dropbox_link)
-with open('ensembleBBB.pkl', 'wb') as file:
-    file.write(response.content)
+        # Download the model file
+        response = requests.get(dropbox_link)
+        with open('ensembleBBB.pkl', 'wb') as file:
+            file.write(response.content)
 
 # Load the model
 load_model = pickle.load(open('ensembleBBB.pkl', 'rb'))
