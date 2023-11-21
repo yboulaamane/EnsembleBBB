@@ -89,7 +89,7 @@ This app allows you to predict the BBB permeability of small-molecules using 880
 with st.sidebar.header('1. Upload your CSV data'):
     uploaded_file = st.sidebar.file_uploader("Upload your input file", type=['txt'])
     st.sidebar.markdown("""
-[Example input file](https://raw.githubusercontent.com/dataprofessor/bioactivity-prediction-app/main/example_acetylcholinesterase.txt)
+[Example input file](https://raw.githubusercontent.com/yboulaamane/EnsembleBBB/main/example_dataset.txt)
 """)
 
     fingerprint_type = st.sidebar.selectbox("Select Fingerprint Type", ["Substructure", "MACCS", "PubChem", "AtomPairs2D", "CDKextended", "EState"])
