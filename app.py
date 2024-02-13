@@ -46,7 +46,7 @@ st.image(image, use_column_width=True)
 
 # Page title
 st.markdown("""
-# Bioactivity Prediction App (Acetylcholinesterase)
+# BBB permeability Prediction App
 
 This app allows you to predict the blood-brain barrier permeability of drugs based on Morgan or MACCS fingerprints. The ensemble models were built using four classifiers on the B3DB dataset.
 
@@ -60,7 +60,7 @@ This app allows you to predict the blood-brain barrier permeability of drugs bas
 with st.sidebar.header('1. Upload your CSV data'):
     uploaded_file = st.sidebar.file_uploader("Upload your input file", type=['csv'])
     st.sidebar.markdown("""
-[Example input file](https://raw.githubusercontent.com/dataprofessor/bioactivity-prediction-app/main/example_acetylcholinesterase.csv)
+[Example input file](https://raw.githubusercontent.com/yboulaamane/EnsembleBBB/main/example.csv)
 """)
     fingerprint_type = st.sidebar.selectbox('2. Choose fingerprint type', ['Morgan fingerprints', 'MACCS fingerprints'])
 
