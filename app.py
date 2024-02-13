@@ -40,10 +40,6 @@ def predict_model(features, model):
     prediction = load_model.predict(features)
     return prediction
 
-# Logo image
-image = Image.open('logo.png')
-st.image(image, use_column_width=True)
-
 # Page title
 st.markdown("""
 # BBB permeability Prediction App
