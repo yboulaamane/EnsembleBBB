@@ -46,7 +46,7 @@ st.image(image, use_column_width=True)
 
 # Page title
 st.markdown("""
-# BBB permeability Prediction App
+# BBB Permeability Prediction App
 
 This app allows you to predict the blood-brain barrier permeability of drugs based on Morgan or MACCS fingerprints. The ensemble models were built using four classifiers on the B3DB dataset.
 
