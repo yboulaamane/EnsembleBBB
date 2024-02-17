@@ -39,4 +39,4 @@ Boulaamane, Y., & Maurady, A. (2023). EnsembleBBB: Enhanced accuracy in predicti
 
 ## Contributions
 
-We welcome contributions! If you have ideas for improvements or bug fixes, please open an issue or a pull request on the GitHub repository [https://github.com/yboulaamane/EnsembleBBB].
+We welcome contributions! If you have ideas for improvements or bug fixes, please open an issue or a pull request on the (GitHub repository) [https://github.com/yboulaamane/EnsembleBBB].
