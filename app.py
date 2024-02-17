@@ -3,7 +3,6 @@ import pandas as pd
 from PIL import Image
 from rdkit import Chem
 from rdkit.Chem import AllChem, MACCSkeys
-from mordred import Calculator, descriptors
 from rdkit.Avalon.pyAvalonTools import GetAvalonFP
 import base64
 import pickle
@@ -60,7 +59,7 @@ st.markdown("""
 This app allows you to predict the blood-brain barrier permeability of drugs based on Morgan (ECFP4), MACCS, Avalon or Topological Torsion fingerprints. The ensemble models were built using four machine learning classifiers (RF, SVC, kNN, and XGB) using the [B3DB dataset](https://www.nature.com/articles/s41597-021-01069-5) with 7996 molecules.
 
 **Credits**
-- App built in `Python` + `Streamlit` by Yassir Boulaamane.
+- App built in `Python` + `Streamlit` by [Yassir Boulaamane](https://yboulaamane.github.io/).
 - Descriptor calculated using [RDKit](https://www.rdkit.org/docs/GettingStartedInPython.html) for fingerprint generation.  
 
 Cite our preprint:  
