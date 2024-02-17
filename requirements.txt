@@ -1,4 +1,4 @@
-streamlit==1.31.0
+streamlit
 pandas
 deepchem
 xgboost==1.7.3
