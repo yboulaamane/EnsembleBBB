@@ -129,7 +129,7 @@ if st.sidebar.button('Predict'):
             st.stop()
             
         # Display the DataFrame of the descriptor lists
-        st.subheader(f'Loading list of descriptors for {fingerprint_type}')
+        st.subheader(f'Loading descriptors for {fingerprint_type}')
 
         st.write("Shape of descriptors:")
         st.write(descriptor_list.shape)        
@@ -176,9 +176,9 @@ if st.sidebar.button('Predict'):
         desc_subset = desc_subset.apply(pd.to_numeric, errors='coerce')
 
         # Display subset of descriptors and its shape
-        st.write("Subset of Descriptors:")
+        st.write("Subset of descriptors:")
         st.write(desc_subset)
-        st.write("Shape of Subset:")
+        st.write("Shape of subset:")
         st.write(desc_subset.shape)
         
         # Save descriptors to CSV file
