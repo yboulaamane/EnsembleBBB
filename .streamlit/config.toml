@@ -1,5 +1,0 @@
-[server]
-maxMessageSize = 600  # 600MB 
-
-[browser]
-websocketPingTimeout = 200   # 200 seconds
