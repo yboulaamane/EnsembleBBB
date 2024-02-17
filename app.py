@@ -190,7 +190,7 @@ if st.sidebar.button('Predict'):
         if fingerprint_type == 'Morgan fingerprints':
             model = 'ensemble_morgan.pkl.gz'
         elif fingerprint_type == 'MACCS fingerprints':
-            model = 'ensemble_morgan.pkl.gz'
+            model = 'ensemble_maccs.pkl.gz'
         elif fingerprint_type == 'Avalon fingerprints':
             model = 'ensemble_avalon.pkl.gz'
         elif fingerprint_type == 'Topological Torsion fingerprints':
