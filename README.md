@@ -1,11 +1,11 @@
 ## EnsembleBBB: BBB Permeability Prediction App
 ![image](https://github.com/yboulaamane/EnsembleBBB/assets/7014404/b3485a62-1219-42f1-8484-aa1fb3d71b18)
 
-EnsembleBBB is a web-based application built with Streamlit that enables users to predict the blood-brain barrier (BBB) permeability of drug molecules. It utilizes an ensemble of machine learning models (RF, SVC, kNN, and XGB) trained on the B3DB dataset and calculates Morgan (ECFP4), MACCS, Avalon, and Topological Torsion fingerprints as molecular descriptors.
+EnsembleBBB is a web-based application built with Streamlit that enables users to predict the blood-brain barrier (BBB) permeability of drug molecules. Try the app live at: http://ensemblebbb.streamlit.app/. It utilizes an ensemble of machine learning models (Random Forest, Support Vector Machine, k-Nearest Neighbors, and XGBoost) trained on the [B3DB dataset](https://github.com/theochem/B3DB/blob/main/B3DB) and calculates Morgan (ECFP4), MACCS, Avalon, and Topological Torsion fingerprints as molecular descriptors.
 
 ## Key Features
 
-- User-Friendly Prediction: Provides a simple interface to:
+Provides a simple interface to:
 - Upload a CSV file containing the SMILES representations of molecules.
 - Enter SMILES manually for quick predictions.
 - Select the desired fingerprint calculation method.
