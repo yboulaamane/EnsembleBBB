@@ -119,6 +119,12 @@ if st.sidebar.button('Predict'):
         else:
             st.error("Invalid fingerprint type selected.")
             st.stop()
+            
+        # Display the DataFrame of the descriptor lists
+        st.subheader(f'Descriptor List for {fingerprint_type}')
+        st.write(descriptor_list)
+        st.write("Shape of Descriptors:")
+        st.write(descriptor_list.shape)        
 
         # Calculate descriptors for the loaded data
         with st.spinner("Calculating descriptors..."):
