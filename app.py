@@ -129,13 +129,13 @@ if st.sidebar.button('Predict'):
             st.stop()
             
         # Display the DataFrame of the descriptor lists
-        st.subheader(f'Descriptor List for {fingerprint_type}')
+        st.subheader(f'Loading list of descriptors for {fingerprint_type}')
 
-        st.write("Shape of Descriptors:")
+        st.write("Shape of descriptors:")
         st.write(descriptor_list.shape)        
 
         # Calculate descriptors for the loaded data
-        with st.spinner("Calculating descriptors..."):
+        with st.spinner("Calculating descriptors for input molecules..."):
         
             features = calculate_fingerprints(load_data['Smiles'], fingerprint_type)
                 
