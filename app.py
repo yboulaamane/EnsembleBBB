@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import requests
 from PIL import Image
 from rdkit import Chem
 from rdkit.Chem import AllChem, MACCSkeys
