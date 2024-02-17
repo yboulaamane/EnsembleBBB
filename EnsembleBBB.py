@@ -129,7 +129,7 @@ if st.sidebar.button('Predict'):
             st.stop()
             
         # Display the DataFrame of the descriptor lists
-        st.subheader(f'Loading descriptors for {fingerprint_type}')
+        st.subheader(f'Loading descriptors for {fingerprint_type}'...)
 
         st.write("Shape of descriptors:")
         st.write(descriptor_list.shape)        
@@ -170,7 +170,7 @@ if st.sidebar.button('Predict'):
 
         
         # Select subset of descriptors based on the chosen fingerprint type
-        st.subheader(f'Calculating Descriptors for input molecules')
+        st.subheader(f'Calculating descriptors for input molecules...')
         desc_subset = features_df[Xlist]
         # Convert columns to numeric types
         desc_subset = desc_subset.apply(pd.to_numeric, errors='coerce')
