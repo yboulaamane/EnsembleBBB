@@ -1,1 +1,5 @@
 *.pkl filter=lfs diff=lfs merge=lfs -text
+ensemble_maccs.pkl filter=lfs diff=lfs merge=lfs -text
+ensemble_topological_torsion.pkl filter=lfs diff=lfs merge=lfs -text
+ensemble_avalon.pkl filter=lfs diff=lfs merge=lfs -text
+ensemble_morgan.pkl filter=lfs diff=lfs merge=lfs -text
