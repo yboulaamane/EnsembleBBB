@@ -7,6 +7,7 @@ from rdkit.Chem import AllChem, MACCSkeys
 from rdkit.Avalon.pyAvalonTools import GetAvalonFP
 import base64
 import pickle
+import gzip
 
 # Feature calculation using RDKit
 def calculate_fingerprints(smiles, fingerprint_type):
@@ -43,29 +44,17 @@ def filedownload(df):
     href = f'<a href="data:file/csv;base64,{b64}" download="ensemblebbb_prediction_results.csv">Download Predictions</a>'
     return href
 
-# Model download
-def load_model():
-    model_url = 'https://www.dropbox.com/scl/fi/...ensemble_maccs.pkl?rlkey=...&dl=1'  # your URL
-    
-    st.write("Downloading model...")
-    response = requests.get(model_url, stream=True) 
-
-    if response.status_code == 200:
-        with open('model.pkl', 'wb') as f:
-            for chunk in response.iter_content(chunk_size=1024):
-                f.write(chunk)
-        st.write("Model downloaded successfully!")
-        return pickle.load(open('model.pkl', 'rb')) 
-    else:
-        st.error("Failed to download model.")
-        return None
-
 # Model prediction
 def predict_model(features, model):
-    model = load_model()
-    if model is not None:
-        prediction = load_model.predict(features)
-        return prediction
+    if model.endswith('.gz'):  # Check for compressed model
+        with gzip.open(model, 'rb') as f:
+            load_model = pickle.load(f)
+    else:  # Standard pickle file
+        with open(model, 'rb') as f:
+            load_model = pickle.load(f)
+
+    prediction = load_model.predict(features)
+    return prediction
 
 # Logo image
 image = Image.open('logo.png')
@@ -199,13 +188,13 @@ if st.sidebar.button('Predict'):
 
         # Load previously built ensemble model
         if fingerprint_type == 'Morgan fingerprints':
-            model = 'ensemble_morgan.pkl'
+            model = 'ensemble_morgan.pkl.gz'
         elif fingerprint_type == 'MACCS fingerprints':
-            model = 'https://www.dropbox.com/scl/fi/vrgatw9p5bo4tmli3oiyz/ensemble_maccs.pkl?rlkey=u644udi20ajjv4x11xyvln5td&dl=1'
+            model = 'ensemble_morgan.pkl.gz'
         elif fingerprint_type == 'Avalon fingerprints':
-            model = 'ensemble_avalon.pkl'
+            model = 'ensemble_avalon.pkl.gz'
         elif fingerprint_type == 'Topological Torsion fingerprints':
-            model = 'ensemble_topological_torsion.pkl'
+            model = 'ensemble_topological_torsion.pkl.gz'
         else:
             st.error("Invalid fingerprint type selected.")
             st.stop()
