@@ -182,7 +182,7 @@ if st.sidebar.button('Predict'):
         if fingerprint_type == 'Morgan fingerprints':
             model = 'ensemble_morgan.pkl'
         elif fingerprint_type == 'MACCS fingerprints':
-            model = 'ensemble_maccs.pkl'
+            model = 'https://www.dropbox.com/scl/fi/vrgatw9p5bo4tmli3oiyz/ensemble_maccs.pkl?rlkey=u644udi20ajjv4x11xyvln5td&dl=1'
         elif fingerprint_type == 'Avalon fingerprints':
             model = 'ensemble_avalon.pkl'
         elif fingerprint_type == 'Topological Torsion fingerprints':
