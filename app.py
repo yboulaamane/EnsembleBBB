@@ -42,11 +42,29 @@ def filedownload(df):
     href = f'<a href="data:file/csv;base64,{b64}" download="ensemblebbb_prediction_results.csv">Download Predictions</a>'
     return href
 
+# Model download
+def load_model():
+    model_url = 'https://www.dropbox.com/scl/fi/...ensemble_maccs.pkl?rlkey=...&dl=1'  # your URL
+    
+    st.write("Downloading model...")
+    response = requests.get(model_url, stream=True) 
+
+    if response.status_code == 200:
+        with open('model.pkl', 'wb') as f:
+            for chunk in response.iter_content(chunk_size=1024):
+                f.write(chunk)
+        st.write("Model downloaded successfully!")
+        return pickle.load(open('model.pkl', 'rb')) 
+    else:
+        st.error("Failed to download model.")
+        return None
+
 # Model prediction
 def predict_model(features, model):
-    load_model = pickle.load(open(model, 'rb'))
-    prediction = load_model.predict(features)
-    return prediction
+    model = load_model()
+    if model is not None:
+        prediction = load_model.predict(features)
+        return prediction
 
 # Logo image
 image = Image.open('logo.png')
