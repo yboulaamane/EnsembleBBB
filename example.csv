@@ -1,0 +1,10 @@
+ID,Smiles
+1,O=C(O)c1cc(N=Nc2ccc(S(=O)(=O)Nc3ccccn3)cc2)ccc1O
+2,COC1(NC(=O)C(C(=O)O)c2ccc(O)cc2)C(=O)N2C(C(=O)O)=C(CSc3nnnn3C)COC21
+3,Oc1c(I)cc(Cl)c2cccnc12
+4,CCNC(=NCCSCc1ncccc1Br)NC#N
+5,CN1CC[C@]23c4c5ccc(OC6O[C@H](C(=O)O)[C@@H](O)[C@H](O)[C@H]6O)c4O[C@H]2[C@@H](O)C=C[C@H]3[C@H]1C5
+6,CS(=O)(=O)N(CCO)c1c(Cl)c(Cl)cc2[nH]c(=O)c(=O)[nH]c12
+7,CN1CC[C@]23c4c5ccc(O)c4O[C@H]2[C@@H](OC2O[C@H](C(=O)O)[C@@H](O)[C@H](O)[C@H]2O)C=C[C@H]3[C@H]1C5
+8,O=C1CN(/N=C/c2ccc([N+](=O)[O-])o2)C(=O)N1
+9,O=c1[nH]c2cc(Cl)ccc2c(O)c1-c1cccc(Oc2ccccc2)c1
