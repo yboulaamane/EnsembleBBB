@@ -208,7 +208,7 @@ if st.sidebar.button('Predict'):
         # Prepare output DataFrame
         output_df = pd.DataFrame({
             'Smiles': load_data['Smiles'],
-            'Prediction': prediction_labels
+            'BBB+/BBB-': prediction_labels
         })
 
         st.header('**Prediction output**')
