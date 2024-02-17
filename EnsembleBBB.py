@@ -129,7 +129,7 @@ if st.sidebar.button('Predict'):
             st.stop()
             
         # Display the DataFrame of the descriptor lists
-        st.subheader(f'Loading descriptors for {fingerprint_type}'...)
+        st.subheader(f'Loading descriptors for {fingerprint_type}...')
 
         st.write("Shape of descriptors:")
         st.write(descriptor_list.shape)        
