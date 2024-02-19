@@ -176,7 +176,7 @@ if st.sidebar.button('Predict'):
         desc_subset = desc_subset.apply(pd.to_numeric, errors='coerce')
 
         # Drop rows with NaN values
-        desc_subset = desc_subset.dropna()
+        desc_subset = desc_subset.dropna().reset_index(drop=True)
         
         # Display subset of descriptors and its shape
         st.write("Subset of descriptors:")
