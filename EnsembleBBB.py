@@ -175,11 +175,13 @@ if st.sidebar.button('Predict'):
         # Convert columns to numeric types
         desc_subset = desc_subset.apply(pd.to_numeric, errors='coerce')
 
-        # Drop NaN values from the original data (features_df) and reset index
+        # Drop NaN values and reset index
         features_df = features_df.dropna().reset_index(drop=True)
-
-        # Drop rows with NaN values from the subset of descriptors
         desc_subset = desc_subset.dropna().reset_index(drop=True)
+
+        # Check DataFrame Shapes
+        st.write("Shape of desc_subset:", desc_subset.shape)
+        st.write("Shape of features_df:", features_df.shape)
 
         # Display subset of descriptors and its shape
         st.write("Subset of descriptors:")
