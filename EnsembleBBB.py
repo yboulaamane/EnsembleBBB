@@ -177,7 +177,6 @@ if st.sidebar.button('Predict'):
 
         # Drop NaN values and reset index
         features_df = features_df.dropna().reset_index(drop=True)
-        desc_subset = desc_subset.dropna().reset_index(drop=True)
 
         # Check DataFrame Shapes
         st.write("Shape of desc_subset:", desc_subset.shape)
