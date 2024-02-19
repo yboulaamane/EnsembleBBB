@@ -167,7 +167,9 @@ if st.sidebar.button('Predict'):
 
         # Store feature names for subsetting
         Xlist = list(descriptor_list.columns)  
-
+        
+        # Drop NaN values and reset index
+        features_df = features_df.dropna().reset_index(drop=True)
         
         # Select subset of descriptors based on the chosen fingerprint type
         st.subheader(f'Calculating descriptors for input molecules...')
@@ -175,12 +177,7 @@ if st.sidebar.button('Predict'):
         # Convert columns to numeric types
         desc_subset = desc_subset.apply(pd.to_numeric, errors='coerce')
 
-        # Drop NaN values and reset index
-        features_df = features_df.dropna().reset_index(drop=True)
 
-        # Check DataFrame Shapes
-        st.write("Shape of desc_subset:", desc_subset.shape)
-        st.write("Shape of features_df:", features_df.shape)
 
         # Display subset of descriptors and its shape
         st.write("Subset of descriptors:")
