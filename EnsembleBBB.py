@@ -209,6 +209,9 @@ if st.sidebar.button('Predict'):
         # Map numeric predictions to BBB labels
         prediction_labels = ['BBB+' if pred == 1 else 'BBB-' for pred in prediction]
 
+        # Reset the index of load_data to match features_df after dropping NaN values
+        load_data = load_data.iloc[features_df.index].reset_index(drop=True)
+
         # Prepare output DataFrame
         output_df = pd.DataFrame({
             'Smiles': load_data['Smiles'],
