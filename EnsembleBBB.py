@@ -165,8 +165,8 @@ if st.sidebar.button('Predict'):
         # Create DataFrame outside the if-else block
         features_df = pd.DataFrame(features, columns=feature_names)
 
-        # Apply trained model to make prediction on query compounds
-        Xlist = list(descriptor_list.columns)  # Store feature names for subsetting
+        # Store feature names for subsetting
+        Xlist = list(descriptor_list.columns)  
 
         
         # Select subset of descriptors based on the chosen fingerprint type
@@ -175,6 +175,9 @@ if st.sidebar.button('Predict'):
         # Convert columns to numeric types
         desc_subset = desc_subset.apply(pd.to_numeric, errors='coerce')
 
+        # Drop rows with NaN values
+        desc_subset = desc_subset.dropna()
+        
         # Display subset of descriptors and its shape
         st.write("Subset of descriptors:")
         st.write(desc_subset)
