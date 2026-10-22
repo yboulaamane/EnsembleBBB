@@ -1,0 +1,36 @@
+{
+  "trained_on": "B3DB, scaffold-split training partition only",
+  "n_training": 6235,
+  "n_held_out": 1559,
+  "resampling": "random oversampling of the minority class, training partition only",
+  "seed": 42,
+  "fingerprints": {
+    "morgan": {
+      "n_bits": 2048,
+      "n_retained": 1951,
+      "model_mb": 3.0
+    },
+    "maccs": {
+      "n_bits": 167,
+      "n_retained": 118,
+      "model_mb": 2.6
+    },
+    "avalon": {
+      "n_bits": 1024,
+      "n_retained": 893,
+      "model_mb": 2.3
+    },
+    "topological_torsion": {
+      "n_bits": 2048,
+      "n_retained": 1244,
+      "model_mb": 2.9
+    }
+  },
+  "applicability_domain": {
+    "representation": "Morgan ECFP4, 2048 bits, packed",
+    "n_reference": 6235,
+    "metric": "maximum Tanimoto similarity to the training partition",
+    "warn_below": 0.5,
+    "note": "accuracy on held-out compounds falls from 94 % above 0.5 to 76 % below 0.3"
+  }
+}

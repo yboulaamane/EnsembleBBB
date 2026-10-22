@@ -1,227 +1,215 @@
-import streamlit as st
-import pandas as pd
-import requests
-from PIL import Image
-from rdkit import Chem
-from rdkit.Chem import AllChem, MACCSkeys
-from rdkit.Avalon.pyAvalonTools import GetAvalonFP
-import base64
-import pickle
+"""EnsembleBBB: blood-brain barrier permeability prediction.
+
+Models are trained on a scaffold-split partition of B3DB, with oversampling
+applied inside the training partition only. Every prediction is reported with
+its probability and with the distance from the training domain, because
+accuracy depends strongly on that distance.
+"""
+from __future__ import annotations
+
 import gzip
+import io
+import json
+import pickle
+from pathlib import Path
 
-# Feature calculation using RDKit
-def calculate_fingerprints(smiles, fingerprint_type):
-    fingerprints = []
+import numpy as np
+import pandas as pd
+import streamlit as st
+from PIL import Image
+from rdkit import Chem, DataStructs, RDLogger
+from rdkit.Avalon.pyAvalonTools import GetAvalonFP
+from rdkit.Chem import AllChem, MACCSkeys
+from rdkit.Chem.rdMolDescriptors import GetHashedTopologicalTorsionFingerprintAsBitVect
 
-    for smile in smiles:
-        mol = Chem.MolFromSmiles(smile)
-        if mol is not None:
-            if fingerprint_type == 'Morgan fingerprints':
-                fingerprint = AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=2048)
-                fingerprint = list(fingerprint.ToBitString())
-            elif fingerprint_type == 'MACCS fingerprints':
-                fingerprint = MACCSkeys.GenMACCSKeys(mol)
-                fingerprint = list(fingerprint.ToBitString())
-            elif fingerprint_type == 'Avalon fingerprints':
-                fingerprint = GetAvalonFP(mol, nBits=2048)      
-                fingerprint = list(fingerprint.ToBitString())
-            elif fingerprint_type == 'Topological Torsion fingerprints':
-                fingerprint = AllChem.GetHashedTopologicalTorsionFingerprintAsBitVect(mol, nBits=2048)    
-                fingerprint = list(fingerprint.ToBitString())               
-            else:
-                st.error("Invalid fingerprint type selected.")
-                return
+RDLogger.DisableLog("rdApp.*")
+
+HERE = Path(__file__).resolve().parent
+MODELS = HERE / "models"
+
+FINGERPRINTS = {
+    "Morgan (ECFP4)": "morgan",
+    "MACCS keys": "maccs",
+    "Avalon": "avalon",
+    "Topological torsion": "topological_torsion",
+}
+AD_WARN = 0.5
+
+st.set_page_config(page_title="EnsembleBBB", layout="wide")
+
+
+@st.cache_resource
+def load_manifest() -> dict:
+    return json.loads((MODELS / "manifest.json").read_text())
+
+
+@st.cache_resource
+def load_model(kind: str):
+    with gzip.open(MODELS / f"rf_{kind}.pkl.gz", "rb") as fh:
+        return pickle.load(fh)
+
+
+@st.cache_resource
+def load_columns(kind: str) -> np.ndarray:
+    return np.load(MODELS / f"columns_{kind}.npy")
+
+
+@st.cache_resource
+def load_domain_reference() -> list:
+    packed = np.load(MODELS / "ad_train_morgan.npy")
+    bits = np.unpackbits(packed, axis=1)[:, :2048]
+    reference = []
+    for row in bits:
+        vector = DataStructs.ExplicitBitVect(2048)
+        vector.SetBitsFromList([int(i) for i in np.flatnonzero(row)])
+        reference.append(vector)
+    return reference
+
+
+def compute_fingerprint(mol, kind: str) -> np.ndarray:
+    if kind == "morgan":
+        return np.array(AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=2048))
+    if kind == "maccs":
+        return np.array(MACCSkeys.GenMACCSKeys(mol))
+    if kind == "avalon":
+        return np.array(GetAvalonFP(mol, nBits=1024))
+    return np.array(GetHashedTopologicalTorsionFingerprintAsBitVect(mol, nBits=2048))
+
+
+def parse(smiles_list: list[str]) -> tuple[list, list[str], list[str]]:
+    """Return parsed molecules with their SMILES, and the ones that failed.
+
+    Keeping these aligned is the point: an earlier version of this app dropped
+    unparseable entries from the feature matrix but not from the label column,
+    so predictions were silently attached to the wrong molecules.
+    """
+    mols, kept, failed = [], [], []
+    for smiles in smiles_list:
+        smiles = smiles.strip()
+        if not smiles:
+            continue
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            failed.append(smiles)
         else:
-            fingerprint = [None] * 2048  # Placeholder for invalid molecules
-        fingerprints.append(fingerprint)
+            mols.append(mol)
+            kept.append(smiles)
+    return mols, kept, failed
 
-    return fingerprints
 
-# File download
-def filedownload(df):
-    csv = df.to_csv(index=False)
-    b64 = base64.b64encode(csv.encode()).decode()  # strings <-> bytes conversions
-    href = f'<a href="data:file/csv;base64,{b64}" download="ensemblebbb_prediction_results.csv">Download Predictions</a>'
-    return href
+def predict(mols, kind: str) -> tuple[np.ndarray, np.ndarray]:
+    columns = load_columns(kind)
+    features = np.vstack([compute_fingerprint(m, kind) for m in mols])[:, columns]
+    probability = load_model(kind).predict_proba(features.astype(float))[:, 1]
+    return probability, (probability >= 0.5).astype(int)
 
-# Model prediction
-def predict_model(features, model):
-    if model.endswith('.gz'):  # Check for compressed model
-        with gzip.open(model, 'rb') as f:
-            load_model = pickle.load(f)
-    else:  # Standard pickle file
-        with open(model, 'rb') as f:
-            load_model = pickle.load(f)
 
-    prediction = load_model.predict(features)
-    return prediction
+def domain_distance(mols) -> np.ndarray:
+    reference = load_domain_reference()
+    out = []
+    for mol in mols:
+        query = AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=2048)
+        out.append(max(DataStructs.BulkTanimotoSimilarity(query, reference)))
+    return np.asarray(out)
 
-# Logo image
-image = Image.open('logo.png')
-st.image(image, use_column_width=True)
 
-# Page title
+logo = MODELS.parent / "logo.png"
+if logo.exists():
+    st.image(Image.open(logo), use_container_width=True)
+
 st.markdown("""
-# BBB Permeability Prediction App
+# EnsembleBBB
 
-This app allows you to predict the blood-brain barrier permeability of drugs based on Morgan (ECFP4), MACCS, Avalon or Topological Torsion fingerprints. The ensemble models were built using four machine learning classifiers (RF, SVC, kNN, and XGB) using the [B3DB dataset](https://www.nature.com/articles/s41597-021-01069-5) with 7996 molecules.
+Predicts blood-brain barrier permeability from structure, using models trained
+on a **scaffold-split** partition of the [B3DB dataset](https://github.com/theochem/B3DB).
 
-**Credits**
-- App built in `Python` + `Streamlit` by [Yassir Boulaamane](https://yboulaamane.github.io/).
-- Descriptor calculated using [RDKit](https://www.rdkit.org/docs/GettingStartedInPython.html) for fingerprint generation.  
-
-Cite our preprint:  
-Boulaamane, Y., & Maurady, A. (2023). EnsembleBBB: Enhanced accuracy in predicting drug blood-brain barrier permeability with a Machine Learning Ensemble model.
-
----
+Each prediction comes with a probability and with its Tanimoto similarity to the
+nearest training molecule. That similarity matters: on held-out compounds,
+accuracy is about **94 % above 0.5** similarity and about **76 % below 0.3**.
 """)
 
-# Sidebar
-with st.sidebar.header('1. Upload your CSV data'):
-    uploaded_file = st.sidebar.file_uploader("Upload your input file", type=['csv'])
-    st.sidebar.markdown("""
-[Example input file](https://raw.githubusercontent.com/yboulaamane/EnsembleBBB/main/example.csv)
-""")
+with st.sidebar:
+    st.header("Input")
+    uploaded = st.file_uploader("CSV with a `Smiles` column", type=["csv"])
+    typed = st.text_area("or paste SMILES, one per line", height=180)
 
-# Adding an input box for smiles
-smiles_input = st.sidebar.text_area("Enter list of SMILES of molecules (one per line)", height=200)
+    st.header("Settings")
+    fingerprint_name = st.selectbox("Fingerprint", list(FINGERPRINTS), index=1)
+    st.caption(
+        "Random forest. Consensus modelling gave no reliable advantage over it, "
+        "so it is no longer served; see the README."
+    )
+    run = st.button("Predict", type="primary")
 
-st.sidebar.markdown("""
-Example:
-""")
-st.sidebar.markdown("""
-CN1C=NC2=C1C(=O)N(C(=O)N2C)C
-""")
+if not run:
+    st.info("Add input in the sidebar, then press Predict.")
+    st.stop()
 
-st.sidebar.header('2. Choose fingerprint type')
-fingerprint_type = st.sidebar.selectbox('Choose fingerprint type', ['Morgan fingerprints', 'MACCS fingerprints', 'Avalon fingerprints', 'Topological Torsion fingerprints'])
-
-
-if st.sidebar.button('Predict'):
-    # Check if either the file or smiles_input is provided
-    if uploaded_file is not None or smiles_input:
-        # If file is uploaded, load the data from the file, else create a DataFrame from the smiles_input
-        if uploaded_file is not None:
-            load_data = pd.read_csv(uploaded_file)
-        else:
-            smiles_list = smiles_input.split("\n")
-            smiles_list = [smile.strip() for smile in smiles_list if smile.strip()]  # Remove empty lines
-            load_data = pd.DataFrame({'Smiles': smiles_list})
-
-        if 'Smiles' not in load_data.columns:
-            st.error("Input file must contain 'Smiles' column.")
-            st.stop()
-
-        st.header('**Original input data**')
-        st.write(load_data)
-        
-        # Read descriptor list based on the selected fingerprint type
-        if fingerprint_type == 'Morgan fingerprints':
-            descriptor_list = pd.read_csv('b3db_morgan_fp.csv')
-        elif fingerprint_type == 'MACCS fingerprints':
-            descriptor_list = pd.read_csv('b3db_maccs_fp.csv')
-        elif fingerprint_type == 'Avalon fingerprints':
-            descriptor_list = pd.read_csv('b3db_avalon_fp.csv')
-        elif fingerprint_type == 'Topological Torsion fingerprints':
-            descriptor_list = pd.read_csv('b3db_topological_torsion_fp.csv')
-        else:
-            st.error("Invalid fingerprint type selected.")
-            st.stop()
-            
-        # Display the DataFrame of the descriptor lists
-        st.subheader(f'Loading descriptors for {fingerprint_type}...')
-
-        st.write("Shape of descriptors:")
-        st.write(descriptor_list.shape)        
-
-        # Calculate descriptors for the loaded data
-        with st.spinner("Calculating descriptors for input molecules..."):
-        
-            features = calculate_fingerprints(load_data['Smiles'], fingerprint_type)
-                
-
-        # Convert features to DataFrame
-        if fingerprint_type == 'Morgan fingerprints':
-            num_bits = 2048
-            fingerprint_type_name = 'Morgan'
-        elif fingerprint_type == 'MACCS fingerprints':
-            num_bits = 167
-            fingerprint_type_name = 'MACCS'
-        elif fingerprint_type == 'Avalon fingerprints':
-            num_bits = 2048
-            fingerprint_type_name = 'Avalon'
-        elif fingerprint_type == 'Topological Torsion fingerprints':
-            num_bits = 2048
-            fingerprint_type_name = 'TopologicalTorsion'
-        else:
-            st.error("Invalid fingerprint type selected.")
-            st.stop()
-
-        # Create feature names consistent with the model's expectations
-        
-        feature_names = [f'{fingerprint_type_name}_{i}' for i in range(num_bits)]
-        
-
-        # Create DataFrame outside the if-else block
-        features_df = pd.DataFrame(features, columns=feature_names)
-
-        # Store feature names for subsetting
-        Xlist = list(descriptor_list.columns)  
-        
-        # Drop NaN values and reset index
-        features_df = features_df.dropna().reset_index(drop=True)
-        
-        # Select subset of descriptors based on the chosen fingerprint type
-        st.subheader(f'Calculating descriptors for input molecules...')
-        desc_subset = features_df[Xlist]
-        # Convert columns to numeric types
-        desc_subset = desc_subset.apply(pd.to_numeric, errors='coerce')
-
-
-
-        # Display subset of descriptors and its shape
-        st.write("Subset of descriptors:")
-        st.write(desc_subset)
-        st.write("Shape of subset:")
-        st.write(desc_subset.shape)
-        
-        # Save descriptors to CSV file
-        descriptors_output_file = "descriptors_output.csv"
-        features_df.to_csv(descriptors_output_file, index=False)
-        st.success(f"Descriptors saved to {descriptors_output_file}")
-
-        # Load previously built ensemble model
-        if fingerprint_type == 'Morgan fingerprints':
-            model = 'ensemble_morgan.pkl.gz'
-        elif fingerprint_type == 'MACCS fingerprints':
-            model = 'ensemble_maccs.pkl.gz'
-        elif fingerprint_type == 'Avalon fingerprints':
-            model = 'ensemble_avalon.pkl.gz'
-        elif fingerprint_type == 'Topological Torsion fingerprints':
-            model = 'ensemble_topological_torsion.pkl.gz'
-        else:
-            st.error("Invalid fingerprint type selected.")
-            st.stop()
-
-        # Apply trained model to make prediction on query compounds
-        prediction = predict_model(desc_subset, model)
-        
-        # Map numeric predictions to BBB labels
-        prediction_labels = ['BBB+' if pred == 1 else 'BBB-' for pred in prediction]
-
-        # Reset the index of load_data to match features_df after dropping NaN values
-        load_data = load_data.iloc[features_df.index].reset_index(drop=True)
-
-        # Prepare output DataFrame
-        output_df = pd.DataFrame({
-            'Smiles': load_data['Smiles'],
-            'BBB+/BBB-': prediction_labels
-        })
-
-        st.header('**Prediction output**')
-        st.write(output_df)
-        st.markdown(filedownload(output_df), unsafe_allow_html=True)
-    else:
-        st.warning("Please upload a CSV file or provide smiles of molecules.")
+if uploaded is not None:
+    frame = pd.read_csv(uploaded)
+    if "Smiles" not in frame.columns:
+        st.error("The CSV needs a column named `Smiles`.")
+        st.stop()
+    raw = frame["Smiles"].astype(str).tolist()
+elif typed.strip():
+    raw = typed.splitlines()
 else:
-    st.info('Upload input data in the sidebar to start!')
+    st.warning("No input given.")
+    st.stop()
+
+mols, kept, failed = parse(raw)
+if not mols:
+    st.error("None of the input could be parsed as SMILES.")
+    st.stop()
+if failed:
+    st.warning(f"{len(failed)} entries could not be parsed and were skipped: "
+               + ", ".join(failed[:5]) + ("..." if len(failed) > 5 else ""))
+
+kind = FINGERPRINTS[fingerprint_name]
+
+with st.spinner("Predicting..."):
+    probability, label = predict(mols, kind)
+    similarity = domain_distance(mols)
+
+results = pd.DataFrame({
+    "Smiles": kept,
+    "Prediction": np.where(label == 1, "BBB+", "BBB-"),
+    "Probability_BBB+": probability.round(3),
+    "Nearest_training_Tanimoto": similarity.round(3),
+    "In_applicability_domain": np.where(similarity >= AD_WARN, "yes", "no"),
+})
+
+st.subheader("Predictions")
+st.dataframe(results, use_container_width=True)
+
+outside = int((similarity < AD_WARN).sum())
+if outside:
+    st.warning(
+        f"{outside} of {len(results)} compounds fall below Tanimoto {AD_WARN} to the "
+        "training set. Their predictions are less reliable; treat them as indicative."
+    )
+
+buffer = io.StringIO()
+results.to_csv(buffer, index=False)
+st.download_button(
+    "Download predictions (CSV)",
+    data=buffer.getvalue(),
+    file_name="ensemblebbb_predictions.csv",
+    mime="text/csv",
+)
+
+with st.expander("Model details"):
+    manifest = load_manifest()
+    st.json(manifest)
+    st.markdown("""
+Performance under scaffold-split validation, random forest on MACCS keys:
+**AUC 0.943, MCC 0.742**. On compounds genuinely external to the training data,
+**AUC 0.954**.
+
+Earlier releases of this app reported substantially higher figures. Those were
+inflated by two faults in the original pipeline: the minority class was
+oversampled before the data were partitioned, and the partition was random over
+a dataset in which roughly half the molecules share a descriptor vector with
+another molecule, because the fingerprints ignore stereochemistry. Both are
+corrected here.
+""")
