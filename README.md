@@ -1,9 +1,15 @@
 # BBBScope
 
+![BBBScope: olanzapine in, MACCS keys, random forest, BBB+ with its distance
+from the training data](logo.png)
+
 Blood-brain barrier permeability prediction that reports **how far each compound
 sits from the data the model was trained on** — and what that costs in accuracy.
 
 **Live app:** https://bbbscope.streamlit.app/
+
+Every number in the banner above is computed from the shipped model when the
+image is built, so it cannot drift away from what the app returns.
 
 ---
 
@@ -118,6 +124,7 @@ python training/train_protocols.py       # three protocols, all models
 python training/repeated_partitions.py   # confidence intervals
 python training/check_external_overlap.py
 python training/export_models.py         # export what the app serves
+python training/make_logo.py             # rebuild the banner (needs matplotlib)
 ```
 
 Hyperparameters are those of the originally published models, so the comparison
