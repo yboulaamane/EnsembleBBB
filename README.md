@@ -107,6 +107,15 @@ Upload a CSV with a `Smiles` column, or paste SMILES one per line. Output gives
 the predicted class, the probability, the similarity to the nearest training
 molecule, the scope band and its expected accuracy.
 
+![The app with the built-in example set loaded: four compounds split across the
+three scope bands, each with its prediction, similarity and nearest training
+molecule](docs/screenshot.png)
+
+The example set above is chosen to span the scope deliberately — caffeine sits
+on top of its own training entry, a perfluorinated alcohol sits outside
+anything in B3DB — so the difference the distance makes is visible in one
+screen.
+
 ```bash
 pip install -r requirements.txt
 streamlit run BBBScope.py
