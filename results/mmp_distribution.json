@@ -1,0 +1,27 @@
+{
+  "cores": 43636,
+  "cores_with_multiple_members": 2267,
+  "distinct_transformations": 3209,
+  "transformations_with_any_discordant_pair": 432,
+  "max_pairs_for_one_transformation": 111,
+  "max_discordant_for_one_transformation": 8,
+  "discordant_count_distribution": {
+    "1": 327,
+    "2": 77,
+    "3": 22,
+    "4": 1,
+    "5": 2,
+    "6": 1,
+    "7": 1,
+    "8": 1
+  },
+  "transformations_with_at_least": {
+    "2": 105,
+    "3": 28,
+    "5": 5,
+    "8": 1,
+    "10": 0,
+    "15": 0,
+    "20": 0
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "MW": {
+    "median_BBB_neg": 424.5340000000002,
+    "median_BBB_pos": 331.4045000000001,
+    "mannwhitney_u": 9896259.0,
+    "p_value": 7.908428378694061e-196,
+    "rank_biserial": -0.406
+  },
+  "LogP": {
+    "median_BBB_neg": 1.4582000000000004,
+    "median_BBB_pos": 2.9235500000000014,
+    "mannwhitney_u": 4483429.5,
+    "p_value": 1.569065740834394e-157,
+    "rank_biserial": 0.363
+  },
+  "HBA": {
+    "median_BBB_neg": 6.0,
+    "median_BBB_pos": 4.0,
+    "mannwhitney_u": 10752820.0,
+    "p_value": 0.0,
+    "rank_biserial": -0.527
+  },
+  "HBD": {
+    "median_BBB_neg": 3.0,
+    "median_BBB_pos": 1.0,
+    "mannwhitney_u": 10945776.5,
+    "p_value": 0.0,
+    "rank_biserial": -0.555
+  },
+  "TPSA": {
+    "median_BBB_neg": 115.55999999999999,
+    "median_BBB_pos": 54.040000000000006,
+    "mannwhitney_u": 11454309.5,
+    "p_value": 0.0,
+    "rank_biserial": -0.627
+  },
+  "RotB": {
+    "median_BBB_neg": 6.0,
+    "median_BBB_pos": 4.0,
+    "mannwhitney_u": 9787769.5,
+    "p_value": 1.9908191841388004e-183,
+    "rank_biserial": -0.39
+  }
+}

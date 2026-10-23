@@ -1,0 +1,185 @@
+{
+  "crossref": [
+    {
+      "ref": 1,
+      "claimed": "J Cereb Blood Flow Metab 32 (2012) 1959-1972",
+      "title": "Transport of Protein and Antibody Therapeutics Across the Blood\u2013Brain Barrier",
+      "container": "Blood\u2010Brain Barrier in Drug Discovery",
+      "volume": "",
+      "page": "146-166",
+      "year": 2015,
+      "doi": "10.1002/9781118788523.ch8",
+      "first_author": "Pardridge"
+    },
+    {
+      "ref": 2,
+      "claimed": "Signal Transduct Target Ther 8 (2023) 217",
+      "title": "The blood\u2013brain barrier: Structure, regulation and drug delivery",
+      "container": "Signal Transduction and Targeted Therapy",
+      "volume": "8",
+      "page": "",
+      "year": 2023,
+      "doi": "10.1038/s41392-023-01481-w",
+      "first_author": "Wu"
+    },
+    {
+      "ref": 3,
+      "claimed": "Sci Rep 9 (2019) 8802",
+      "title": "Improved Classification of Blood-Brain-Barrier Drugs Using Deep Learning",
+      "container": "Scientific Reports",
+      "volume": "9",
+      "page": "",
+      "year": 2019,
+      "doi": "10.1038/s41598-019-44773-4",
+      "first_author": "Miao"
+    },
+    {
+      "ref": 4,
+      "claimed": "Bioinformatics 37 (2021) 1135-1139",
+      "title": "LightBBB: computational prediction model of blood\u2013brain-barrier penetration based on LightGBM",
+      "container": "Bioinformatics",
+      "volume": "37",
+      "page": "1135-1139",
+      "year": 2020,
+      "doi": "10.1093/bioinformatics/btaa918",
+      "first_author": "Shaker"
+    },
+    {
+      "ref": 6,
+      "claimed": "PeerJ Comput Sci 7 (2021) e515",
+      "title": "A deep learning approach to predict blood-brain barrier permeability",
+      "container": "PeerJ Computer Science",
+      "volume": "7",
+      "page": "e515",
+      "year": 2021,
+      "doi": "10.7717/peerj-cs.515",
+      "first_author": "Alsenan"
+    },
+    {
+      "ref": 7,
+      "claimed": "Sci Data 8 (2021) 289",
+      "title": "A curated diverse molecular database of blood-brain barrier permeability with chemical descriptors",
+      "container": "Scientific Data",
+      "volume": "8",
+      "page": "",
+      "year": 2021,
+      "doi": "10.1038/s41597-021-01069-5",
+      "first_author": "Meng"
+    },
+    {
+      "ref": 9,
+      "claimed": "QSAR Comb Sci 26 (2007) 694-701",
+      "title": "Principles of QSAR models validation: internal and external",
+      "container": "QSAR &amp; Combinatorial Science",
+      "volume": "26",
+      "page": "694-701",
+      "year": 2007,
+      "doi": "10.1002/qsar.200610151",
+      "first_author": "Gramatica"
+    },
+    {
+      "ref": 10,
+      "claimed": "QSAR Comb Sci 22 (2003) 69-77",
+      "title": "The Importance of Being Earnest: Validation is the Absolute Essential for Successful Application and Interpretation of QSPR Models",
+      "container": "QSAR &amp; Combinatorial Science",
+      "volume": "22",
+      "page": "69-77",
+      "year": 2003,
+      "doi": "10.1002/qsar.200390007",
+      "first_author": "Tropsha"
+    },
+    {
+      "ref": 12,
+      "claimed": "J Med Chem 39 (1996) 2887-2893",
+      "title": "The Properties of Known Drugs. 1. Molecular Frameworks",
+      "container": "Journal of Medicinal Chemistry",
+      "volume": "39",
+      "page": "2887-2893",
+      "year": 1996,
+      "doi": "10.1021/jm9602928",
+      "first_author": "Bemis"
+    },
+    {
+      "ref": 13,
+      "claimed": "J Artif Intell Res 16 (2002) 321-357",
+      "title": "SMOTE: Synthetic Minority Over-sampling Technique",
+      "container": "Journal of Artificial Intelligence Research",
+      "volume": "16",
+      "page": "321-357",
+      "year": 2002,
+      "doi": "10.1613/jair.953",
+      "first_author": "Chawla"
+    },
+    {
+      "ref": 14,
+      "claimed": "KDD (2016) 785-794",
+      "title": "XGBoost",
+      "container": "Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining",
+      "volume": "",
+      "page": "785-794",
+      "year": 2016,
+      "doi": "10.1145/2939672.2939785",
+      "first_author": "Chen"
+    },
+    {
+      "ref": 15,
+      "claimed": "J Mach Learn Res 12 (2011) 2825-2830",
+      "title": "Getting Started with Scikit\u2010learn for Machine Learning",
+      "container": "Python\u00ae Machine Learning",
+      "volume": "",
+      "page": "93-117",
+      "year": 2019,
+      "doi": "10.1002/9781119557500.ch5",
+      "first_author": ""
+    },
+    {
+      "ref": 16,
+      "claimed": "Biochim Biophys Acta 405 (1975) 442-451",
+      "title": "Comparison of the predicted and observed secondary structure of T4 phage lysozyme",
+      "container": "Biochimica et Biophysica Acta (BBA) - Protein Structure",
+      "volume": "405",
+      "page": "442-451",
+      "year": 1975,
+      "doi": "10.1016/0005-2795(75)90109-9",
+      "first_author": "Matthews"
+    },
+    {
+      "ref": 17,
+      "claimed": "BMC Genomics 21 (2020) 6",
+      "title": "The advantages of the Matthews correlation coefficient (MCC) over F1 score and accuracy in binary classification evaluation",
+      "container": "BMC Genomics",
+      "volume": "21",
+      "page": "",
+      "year": 2020,
+      "doi": "10.1186/s12864-019-6413-7",
+      "first_author": "Chicco"
+    },
+    {
+      "ref": 18,
+      "claimed": "NeurIPS 30 (2017) 4765-4774",
+      "title": "Unified Deep Learning Model for Multitask Reaction Predictions with Explanation",
+      "container": "",
+      "volume": "",
+      "page": "",
+      "year": null,
+      "doi": "10.1021/acs.jcim.1c01467.s001",
+      "first_author": ""
+    },
+    {
+      "ref": 19,
+      "claimed": "J Comput Aided Mol Des 34 (2020) 1013-1026",
+      "title": "Interpretation of machine learning models using shapley values: application to compound potency and multi-target activity predictions",
+      "container": "Journal of Computer-Aided Molecular Design",
+      "volume": "34",
+      "page": "1013-1026",
+      "year": 2020,
+      "doi": "10.1007/s10822-020-00314-0",
+      "first_author": "Rodr\u00edguez-P\u00e9rez"
+    }
+  ],
+  "manual": {
+    "5": "B3clf (Meng, Chen, Collins-Ramirez, Ayers) - 2025 preprint, no journal version found; cite as preprint plus repository.",
+    "8": "OECD guidance document No. 69 - an OECD report, confirm the series number and year on the OECD iLibrary page.",
+    "11": "RDKit - software, cite the project site and the version used."
+  }
+}

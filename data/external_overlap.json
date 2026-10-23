@@ -1,0 +1,19 @@
+{
+  "raw_rows": 1941,
+  "duplicate_structures_removed": 58,
+  "contradictory_structures_removed": 10,
+  "external_size": 1862,
+  "identical_structure_in_training": 1259,
+  "identical_fingerprint_in_training": 1319,
+  "shared_scaffold_with_training": 1455,
+  "pct_identical_structure": 67.62,
+  "pct_identical_fingerprint": 70.84,
+  "pct_shared_scaffold": 78.14,
+  "median_nn_tanimoto": 1.0,
+  "clean_external_size": 407,
+  "clean_class_balance": {
+    "BBB+": 290,
+    "BBB-": 117
+  },
+  "clean_median_nn_tanimoto": 0.537
+}

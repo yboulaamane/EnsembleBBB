@@ -1,0 +1,13 @@
+protocol,fingerprint,best_single,best_single_MCC,ensemble_MCC,delta_MCC,best_single_AUC,ensemble_AUC,delta_AUC
+A,Morgan,RF,0.858,0.847,-0.01,0.979,0.978,-0.001
+A,MACCS,SVC,0.859,0.859,0.0,0.972,0.978,0.007
+A,Avalon,RF,0.859,0.844,-0.014,0.98,0.979,-0.001
+A,Topological torsion,RF,0.859,0.849,-0.009,0.978,0.977,-0.001
+B,Morgan,RF,0.726,0.718,-0.008,0.953,0.952,-0.001
+B,MACCS,SVC,0.749,0.755,0.005,0.939,0.955,0.017
+B,Avalon,XGB,0.739,0.754,0.016,0.953,0.952,-0.001
+B,Topological torsion,RF,0.725,0.72,-0.005,0.95,0.951,0.0
+C,Morgan,RF,0.674,0.655,-0.019,0.935,0.928,-0.007
+C,MACCS,RF,0.742,0.738,-0.004,0.943,0.939,-0.003
+C,Avalon,XGB,0.702,0.723,0.021,0.936,0.944,0.008
+C,Topological torsion,RF,0.702,0.662,-0.04,0.916,0.917,0.001

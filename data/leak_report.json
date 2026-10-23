@@ -1,0 +1,77 @@
+{
+  "morgan": {
+    "unique_fingerprints": 4020,
+    "collision_rate": 0.4842,
+    "random_split": {
+      "test_size": 1559,
+      "leaked": 987,
+      "leak_rate": 0.6331
+    },
+    "scaffold_split": {
+      "test_size": 1559,
+      "leaked": 0,
+      "leak_rate": 0.0
+    }
+  },
+  "morgan_chiral": {
+    "unique_fingerprints": 7698,
+    "collision_rate": 0.0123,
+    "random_split": {
+      "test_size": 1559,
+      "leaked": 21,
+      "leak_rate": 0.0135
+    },
+    "scaffold_split": {
+      "test_size": 1559,
+      "leaked": 0,
+      "leak_rate": 0.0
+    }
+  },
+  "maccs": {
+    "unique_fingerprints": 3825,
+    "collision_rate": 0.5092,
+    "random_split": {
+      "test_size": 1559,
+      "leaked": 1023,
+      "leak_rate": 0.6562
+    },
+    "scaffold_split": {
+      "test_size": 1559,
+      "leaked": 128,
+      "leak_rate": 0.0821
+    }
+  },
+  "avalon": {
+    "unique_fingerprints": 4006,
+    "collision_rate": 0.486,
+    "random_split": {
+      "test_size": 1559,
+      "leaked": 988,
+      "leak_rate": 0.6337
+    },
+    "scaffold_split": {
+      "test_size": 1559,
+      "leaked": 0,
+      "leak_rate": 0.0
+    }
+  },
+  "topological_torsion": {
+    "unique_fingerprints": 3980,
+    "collision_rate": 0.4894,
+    "random_split": {
+      "test_size": 1559,
+      "leaked": 996,
+      "leak_rate": 0.6389
+    },
+    "scaffold_split": {
+      "test_size": 1559,
+      "leaked": 2,
+      "leak_rate": 0.0013
+    }
+  },
+  "collision_groups": {
+    "n_groups": 1487,
+    "share_scaffold": 1486,
+    "share_label": 1358
+  }
+}

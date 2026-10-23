@@ -1,0 +1,10 @@
+{
+  "model": "random forest, 100 trees",
+  "n_descriptors_chiral": 2006,
+  "n_descriptors_blind": 1951,
+  "note": "leakage under random partitioning falls from 63.3 % to 1.4 % with chirality enabled; this table gives the accuracy cost",
+  "scaffold_split_delta": {
+    "MCC": -0.006,
+    "AUC": -0.001
+  }
+}

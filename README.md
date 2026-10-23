@@ -123,6 +123,14 @@ streamlit run BBBScope.py
 
 ## Reproducing everything
 
+`data/` holds the curated structures, their labels and the scaffold partition
+indices; `results/` holds every metric reported in the manuscript, including
+the per-protocol predicted probabilities, so the figures can be redrawn without
+refitting anything. The fingerprint matrices are not tracked because
+`prepare_data.py` regenerates them from `data/molecules_dedup.csv`.
+`training/requirements-lock.txt` pins the versions the published numbers were
+produced under.
+
 `training/` holds the full pipeline — curation, fingerprints, scaffold
 partitioning, the three validation protocols, repeated partitions, the external
 overlap analysis and model export.

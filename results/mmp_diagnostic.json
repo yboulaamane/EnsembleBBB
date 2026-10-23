@@ -1,0 +1,46 @@
+{
+  "molecules": 7794,
+  "max_cuts_1": {
+    "distinct_cores": 53798,
+    "cores_with_one_member": 47882,
+    "cores_with_multiple_members": 5916,
+    "matched_pairs": 1126051,
+    "label_discordant_pairs": 417538,
+    "discordant_fraction": 0.371
+  },
+  "max_cuts_2": {
+    "distinct_cores": 206827,
+    "cores_with_one_member": 184145,
+    "cores_with_multiple_members": 22682,
+    "matched_pairs": 2450608,
+    "label_discordant_pairs": 882772,
+    "discordant_fraction": 0.36
+  },
+  "scaffold_series": {
+    "distinct_scaffolds": 2128,
+    "singleton_scaffolds": 1133,
+    "scaffolds_with_5_or_more": 350,
+    "largest_series": [
+      [
+        "O=C1C=CC2C(=C1)CCC1C3CCCC3CCC21",
+        410
+      ],
+      [
+        "c1ccccc1",
+        377
+      ],
+      [
+        "",
+        311
+      ],
+      [
+        "O=C1C=C2CCC3C4CCCC4CCC3C2CC1",
+        126
+      ],
+      [
+        "O=C1C=CC2C(=C1)CCC1C2CCC2C1CC1OCOC12",
+        100
+      ]
+    ]
+  }
+}

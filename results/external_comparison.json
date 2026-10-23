@@ -1,0 +1,80 @@
+{
+  "n_compounds": 76,
+  "class_balance": {
+    "BBB+": 34,
+    "BBB-": 42
+  },
+  "n_bootstrap": 10000,
+  "EnsembleBBB (corrected)": {
+    "ACC": {
+      "estimate": 0.895,
+      "ci95": [
+        0.829,
+        0.961
+      ]
+    },
+    "MCC": {
+      "estimate": 0.787,
+      "ci95": [
+        0.643,
+        0.92
+      ]
+    },
+    "AUC": {
+      "estimate": 0.961,
+      "ci95": [
+        0.918,
+        0.99
+      ]
+    }
+  },
+  "B3clf (xgb, ADASYN)": {
+    "ACC": {
+      "estimate": 0.789,
+      "ci95": [
+        0.697,
+        0.882
+      ]
+    },
+    "MCC": {
+      "estimate": 0.577,
+      "ci95": [
+        0.386,
+        0.761
+      ]
+    },
+    "AUC": {
+      "estimate": 0.919,
+      "ci95": [
+        0.852,
+        0.968
+      ]
+    }
+  },
+  "paired_difference_ours_minus_b3clf": {
+    "ACC": {
+      "estimate": 0.105,
+      "ci95": [
+        0.013,
+        0.197
+      ],
+      "excludes_zero": true
+    },
+    "MCC": {
+      "estimate": 0.21,
+      "ci95": [
+        0.026,
+        0.4
+      ],
+      "excludes_zero": true
+    },
+    "AUC": {
+      "estimate": 0.042,
+      "ci95": [
+        0.002,
+        0.094
+      ],
+      "excludes_zero": true
+    }
+  }
+}

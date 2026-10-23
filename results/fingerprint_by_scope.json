@@ -1,0 +1,151 @@
+{
+  "by_band": [
+    {
+      "fingerprint": "maccs",
+      "band": "Out of scope",
+      "n": 280,
+      "ACC": 0.761,
+      "MCC": 0.405,
+      "AUC": 0.819
+    },
+    {
+      "fingerprint": "maccs",
+      "band": "Edge of scope",
+      "n": 411,
+      "ACC": 0.888,
+      "MCC": 0.696,
+      "AUC": 0.918
+    },
+    {
+      "fingerprint": "maccs",
+      "band": "In scope",
+      "n": 868,
+      "ACC": 0.939,
+      "MCC": 0.86,
+      "AUC": 0.975
+    },
+    {
+      "fingerprint": "morgan",
+      "band": "Out of scope",
+      "n": 280,
+      "ACC": 0.704,
+      "MCC": 0.231,
+      "AUC": 0.777
+    },
+    {
+      "fingerprint": "morgan",
+      "band": "Edge of scope",
+      "n": 411,
+      "ACC": 0.832,
+      "MCC": 0.512,
+      "AUC": 0.876
+    },
+    {
+      "fingerprint": "morgan",
+      "band": "In scope",
+      "n": 868,
+      "ACC": 0.938,
+      "MCC": 0.858,
+      "AUC": 0.974
+    },
+    {
+      "fingerprint": "avalon",
+      "band": "Out of scope",
+      "n": 280,
+      "ACC": 0.782,
+      "MCC": 0.458,
+      "AUC": 0.846
+    },
+    {
+      "fingerprint": "avalon",
+      "band": "Edge of scope",
+      "n": 411,
+      "ACC": 0.864,
+      "MCC": 0.614,
+      "AUC": 0.908
+    },
+    {
+      "fingerprint": "avalon",
+      "band": "In scope",
+      "n": 868,
+      "ACC": 0.916,
+      "MCC": 0.811,
+      "AUC": 0.971
+    },
+    {
+      "fingerprint": "topological_torsion",
+      "band": "Out of scope",
+      "n": 280,
+      "ACC": 0.757,
+      "MCC": 0.383,
+      "AUC": 0.794
+    },
+    {
+      "fingerprint": "topological_torsion",
+      "band": "Edge of scope",
+      "n": 411,
+      "ACC": 0.842,
+      "MCC": 0.547,
+      "AUC": 0.825
+    },
+    {
+      "fingerprint": "topological_torsion",
+      "band": "In scope",
+      "n": 868,
+      "ACC": 0.935,
+      "MCC": 0.852,
+      "AUC": 0.965
+    },
+    {
+      "fingerprint": "combined",
+      "band": "Out of scope",
+      "n": 280,
+      "ACC": 0.732,
+      "MCC": 0.305,
+      "AUC": 0.867
+    },
+    {
+      "fingerprint": "combined",
+      "band": "Edge of scope",
+      "n": 411,
+      "ACC": 0.876,
+      "MCC": 0.652,
+      "AUC": 0.933
+    },
+    {
+      "fingerprint": "combined",
+      "band": "In scope",
+      "n": 868,
+      "ACC": 0.937,
+      "MCC": 0.855,
+      "AUC": 0.975
+    }
+  ],
+  "overall": {
+    "maccs": {
+      "ACC": 0.894,
+      "MCC": 0.742,
+      "AUC": 0.943
+    },
+    "morgan": {
+      "ACC": 0.868,
+      "MCC": 0.674,
+      "AUC": 0.935
+    },
+    "avalon": {
+      "ACC": 0.878,
+      "MCC": 0.701,
+      "AUC": 0.941
+    },
+    "topological_torsion": {
+      "ACC": 0.879,
+      "MCC": 0.702,
+      "AUC": 0.916
+    },
+    "combined": {
+      "ACC": 0.884,
+      "MCC": 0.715,
+      "AUC": 0.952
+    }
+  }
+}

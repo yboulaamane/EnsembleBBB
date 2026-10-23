@@ -1,0 +1,28 @@
+{
+  "morgan": {
+    "n_descriptors": 1951,
+    "h_star": 0.9392,
+    "test_flagged_pct": 63.12
+  },
+  "maccs": {
+    "n_descriptors": 118,
+    "h_star": 0.0573,
+    "test_flagged_pct": 1.8
+  },
+  "avalon": {
+    "n_descriptors": 893,
+    "h_star": 0.4302,
+    "test_flagged_pct": 16.16
+  },
+  "topological_torsion": {
+    "n_descriptors": 1244,
+    "h_star": 0.599,
+    "test_flagged_pct": 26.11
+  },
+  "similarity_domain": {
+    "median_nn_tanimoto": 0.525,
+    "accuracy_all": 89.35,
+    "accuracy_above_0.5": 93.89,
+    "coverage_above_0.5": 55.68
+  }
+}

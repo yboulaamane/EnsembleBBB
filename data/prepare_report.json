@@ -1,0 +1,55 @@
+{
+  "seed": 42,
+  "correlation_cutoff": 0.7,
+  "fingerprint_collisions": {
+    "morgan": {
+      "molecules": 7794,
+      "unique_fingerprints": 4020,
+      "collision_rate": 0.4842
+    },
+    "maccs": {
+      "molecules": 7794,
+      "unique_fingerprints": 3825,
+      "collision_rate": 0.5092
+    },
+    "avalon": {
+      "molecules": 7794,
+      "unique_fingerprints": 4006,
+      "collision_rate": 0.486
+    },
+    "topological_torsion": {
+      "molecules": 7794,
+      "unique_fingerprints": 3980,
+      "collision_rate": 0.4894
+    }
+  },
+  "deduplication": {
+    "input_molecules": 7794,
+    "contradictory_structures_removed": 0,
+    "duplicate_structures_removed": 0,
+    "unique_molecules": 7794
+  },
+  "feature_selection": {
+    "morgan": {
+      "raw_bits": 2048,
+      "after_selection": 1951
+    },
+    "maccs": {
+      "raw_bits": 167,
+      "after_selection": 118
+    },
+    "avalon": {
+      "raw_bits": 1024,
+      "after_selection": 893
+    },
+    "topological_torsion": {
+      "raw_bits": 2048,
+      "after_selection": 1244
+    }
+  },
+  "scaffold_split": {
+    "train": 6235,
+    "test": 1559,
+    "unique_scaffolds": 2128
+  }
+}

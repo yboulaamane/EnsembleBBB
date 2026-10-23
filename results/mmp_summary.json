@@ -1,0 +1,9 @@
+{
+  "molecules": 7794,
+  "max_cuts": 2,
+  "distinct_cores": 201901,
+  "transformations_tested": 7,
+  "significant_at_fdr": 4,
+  "min_pairs": 10,
+  "fdr": 0.05
+}

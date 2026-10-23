@@ -1,0 +1,16 @@
+fingerprint,band,n,ACC,MCC,AUC
+maccs,Out of scope,280,0.761,0.405,0.819
+maccs,Edge of scope,411,0.888,0.696,0.918
+maccs,In scope,868,0.939,0.86,0.975
+morgan,Out of scope,280,0.704,0.231,0.777
+morgan,Edge of scope,411,0.832,0.512,0.876
+morgan,In scope,868,0.938,0.858,0.974
+avalon,Out of scope,280,0.782,0.458,0.846
+avalon,Edge of scope,411,0.864,0.614,0.908
+avalon,In scope,868,0.916,0.811,0.971
+topological_torsion,Out of scope,280,0.757,0.383,0.794
+topological_torsion,Edge of scope,411,0.842,0.547,0.825
+topological_torsion,In scope,868,0.935,0.852,0.965
+combined,Out of scope,280,0.732,0.305,0.867
+combined,Edge of scope,411,0.876,0.652,0.933
+combined,In scope,868,0.937,0.855,0.975

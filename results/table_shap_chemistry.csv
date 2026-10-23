@@ -1,0 +1,16 @@
+maccs_bit,chemistry,smarts,mean_abs_shap,mean_signed_shap_when_present,pct_in_BBB_pos,pct_in_BBB_neg,direction
+140,Four or more oxygen atoms,[#8],0.0401,-0.0254,33.2,71.7,BBB-
+131,Two or more H-bond donors,[!#6;!#1;!H0],0.038,-0.0358,33.2,75.2,BBB-
+95,"Nitrogen and oxygen, 1,4-related",[#7]~*~*~[#8],0.0336,-0.0324,27.9,70.2,BBB-
+123,"O-C-O (acetal, ester or carbonate)",[#8]~[#6]~[#8],0.0254,-0.0253,28.9,63.3,BBB-
+139,Hydroxyl group,[O;!H0],0.0241,-0.0197,44.2,74.5,BBB-
+133,Nitrogen on a ring via an acyclic bond,*@*!@[#7],0.0226,-0.0247,24.0,58.1,BBB-
+54,"Two H-bond donors, 1,4-related",[!#6;!#1;!H0]~*~*~[!#6;!#1;!H0],0.0225,-0.048,8.3,36.6,BBB-
+97,"Nitrogen and oxygen, 1,5-related",[#7]~*~*~*~[#8],0.0223,-0.0173,30.2,68.0,BBB-
+8,Heteroatom in a four-membered ring,[!#6;!#1]1~*~*~*~1,0.0175,-0.0757,0.6,26.0,BBB-
+150,Ring flanked by two acyclic bonds,*!@*@*!@*,0.0143,-0.0076,59.2,82.7,BBB-
+92,Amide,[#8]~[#6](~[#7])~[#6],0.0119,-0.0116,28.0,55.9,BBB-
+159,Two or more oxygen atoms,[#8],0.0117,-0.0073,68.4,91.6,BBB-
+136,Two or more carbonyl or oxo groups,[#8]=*,0.0111,-0.0028,38.8,66.1,BBB-
+79,"Two nitrogens, 1,4-related",[#7]~*~*~[#7],0.0096,-0.0093,26.8,47.6,BBB-
+26,Trisubstituted endocyclic alkene,[#6]=;@[#6](@*)@*,0.0093,0.0233,18.9,8.4,BBB+

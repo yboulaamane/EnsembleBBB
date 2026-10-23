@@ -1,0 +1,12 @@
+{
+  "clean_external_size": 407,
+  "also_in_full_B3DB": 296,
+  "scaffold_in_full_B3DB": 268,
+  "pct_in_full_B3DB": 72.73,
+  "fair_for_B3clf": 111,
+  "doubly_clean_size": 86,
+  "doubly_clean_balance": {
+    "BBB+": 37,
+    "BBB-": 49
+  }
+}

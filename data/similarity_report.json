@@ -1,0 +1,12 @@
+{
+  "random_split": {
+    "median_nn_tanimoto": 1.0,
+    "fraction_identical": 0.6331,
+    "fraction_above_0.8": 0.6575
+  },
+  "scaffold_split": {
+    "median_nn_tanimoto": 0.525,
+    "fraction_identical": 0.0,
+    "fraction_above_0.8": 0.0199
+  }
+}
