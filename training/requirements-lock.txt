@@ -1,0 +1,21 @@
+# Exact versions the published analysis was run under.
+#
+# The app's own requirements.txt carries lower bounds rather than pins, so that
+# Streamlit Cloud can resolve wheels for whichever Python it builds on. This
+# file is for reproducing the numbers in the manuscript, where the versions
+# have to be fixed.
+#
+# Python 3.11.15
+#
+# The models of the preliminary version, from which the hyperparameters were
+# recovered, were serialised under scikit-learn 1.4.0. They load under the
+# version below with a compatibility warning; nothing is refitted from them.
+
+rdkit==2025.9.5
+scikit-learn==1.8.0
+numpy==1.26.4
+pandas==3.0.5
+scipy==1.17.1
+xgboost==3.2.0
+shap==0.51.0
+matplotlib==3.10.8
