@@ -3,7 +3,7 @@
 Blood-brain barrier permeability prediction that reports **how far each compound
 sits from the data the model was trained on** — and what that costs in accuracy.
 
-**Live app:** https://ensemblebbb.streamlit.app/
+**Live app:** https://bbbscope.streamlit.app/
 
 ---
 
