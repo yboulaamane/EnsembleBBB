@@ -1,104 +1,123 @@
-# EnsembleBBB
+# BBBScope
 
-Blood-brain barrier permeability prediction from chemical structure, with an
-applicability domain and honest validation.
+Blood-brain barrier permeability prediction that reports **how far each compound
+sits from the data the model was trained on** — and what that costs in accuracy.
 
-**Live app:** http://ensemblebbb.streamlit.app/
+**Live app:** https://ensemblebbb.streamlit.app/
 
 ---
 
-## What changed in this release
+## Why the scope matters
 
-Earlier versions of this repository reported AUC around 0.95–0.96 and 95 %
-accuracy on an "external" set. Those figures were inflated, and we corrected
-them. Two faults were responsible:
+Most blood-brain barrier predictors return a class, or a class and a
+probability. Neither tells you whether the model has ever seen anything like
+your compound. Measured on held-out compounds:
 
-1. **The minority class was oversampled before the data were partitioned.**
-   Copies of the same molecule therefore appeared on both sides of every split
-   and every cross-validation fold.
+| Tanimoto to nearest training molecule | Scope | Accuracy |
+|---|---|---|
+| ≥ 0.5 | In scope | ~94 % |
+| 0.3 – 0.5 | Edge of scope | ~88 % |
+| < 0.3 | Out of scope | ~76 % |
 
-2. **The partition was random**, over a dataset in which roughly half the
-   molecules share a descriptor vector with another molecule. B3DB contains
-   large families of stereoisomers, and Morgan, MACCS and Avalon fingerprints
-   are computed without stereochemistry by default. Under a random split, 63 %
-   of test compounds had a bit-for-bit identical twin in training, and the
-   median test compound had Tanimoto similarity **1.00** to its nearest
-   training neighbour.
+An eighteen-point accuracy range is not a footnote. BBBScope returns that
+distance with every prediction, so a result on a novel chemotype can be read as
+the extrapolation it is.
 
-A third problem affected the external evaluation: **68 % of the BBBP "external"
-set is present in B3DB as identical structures**, so that benchmark was mostly
-measuring memorisation.
+A leverage-based applicability domain was evaluated too. It behaves for MACCS
+keys but degenerates for wider fingerprints, flagging 63 % of a test set at
+1 951 descriptors, because the usual warning leverage *h\** = 3(p+1)/n assumes
+far fewer descriptors than compounds. The similarity domain has no such failure
+mode.
 
-Corrected figures, random forest on MACCS keys with scaffold-split validation:
+## Performance
+
+Random forest on MACCS keys, across ten repeated scaffold partitions:
 
 | | AUC | MCC | Accuracy |
 |---|---|---|---|
-| Held-out (scaffold split) | 0.943 | 0.742 | 0.894 |
+| Held out, 10 partitions | **0.934** (0.923–0.948) | **0.693** (0.666–0.734) | 0.866 |
 | Genuinely external compounds | 0.954 | 0.775 | 0.909 |
 
-We also found that **consensus modelling does not help here.** Soft voting over
-four classifiers beats its own best member in only 3 of 12 comparisons, with a
-mean MCC difference of −0.006. The random forest alone is the better model, and
-it is what the app now serves.
+Those two agreeing is the useful part: scaffold-partitioned internal validation
+predicts genuine external performance, so you can trust the estimate without an
+external set — provided it is taken over repeated partitions rather than one.
 
-The consensus models are no longer shipped. Besides adding nothing, they are
-not practical to distribute: the k-nearest-neighbours member stores the entire
-oversampled training array, roughly 150 MB per fingerprint. `training/` rebuilds
-them in full for anyone who wants to verify the comparison.
+## History: this project was wrong, and here is how
 
-## Applicability domain
+This repository was previously **EnsembleBBB**, and reported AUC 0.95–0.96 with
+95 % accuracy on an "external" set. Those figures were inflated. Three faults:
 
-Accuracy depends strongly on how close a compound is to the training set:
+**1. Oversampling before partitioning.** The minority class was oversampled
+across the whole dataset and only then split, so copies of the same molecule sat
+on both sides of every split and every cross-validation fold.
 
-| Tanimoto to nearest training molecule | Accuracy |
-|---|---|
-| < 0.3 | 76 % |
-| 0.3 – 0.5 | 88 % |
-| > 0.8 | 95 % |
+**2. Random partitioning over a stereoisomer-rich dataset.** B3DB contains large
+families of stereoisomers, and Morgan, MACCS and Avalon fingerprints ignore
+stereochemistry by default. 48–51 % of molecules therefore share a descriptor
+vector with another molecule. Under a random split, **63 % of test compounds had
+a bit-for-bit identical twin in training**, and the median test compound had
+Tanimoto similarity **1.00** to its nearest training neighbour.
 
-Every prediction reports this similarity, and anything below 0.5 is flagged.
+**3. The external set was not external.** **67.6 %** of the BBBP evaluation set
+is present in B3DB as identical structures. That benchmark was largely measuring
+memorisation.
+
+Correcting the protocol costs **0.057 AUC and 0.174 MCC**. Two one-line remedies
+remove the leakage: partition by Bemis–Murcko scaffold, or enable stereochemistry
+in the fingerprint — the latter costing 0.006 MCC, within fold-to-fold noise.
+
+**Consensus modelling does not help here.** Across ten partitions, soft voting
+over four classifiers beat its best member in 4 of 10, mean ΔMCC −0.001
+(−0.014 to +0.015). Indistinguishable. The app serves a single random forest;
+`training/` rebuilds the consensus if you want to check.
 
 ## Usage
 
-Upload a CSV with a `Smiles` column, or paste SMILES one per line. Choose a
-fingerprint and model, then press Predict. Output includes the predicted class,
-the probability, the similarity to the nearest training molecule, and whether
-the compound falls inside the applicability domain.
-
-## Running locally
+Upload a CSV with a `Smiles` column, or paste SMILES one per line. Output gives
+the predicted class, the probability, the similarity to the nearest training
+molecule, the scope band and its expected accuracy.
 
 ```bash
 pip install -r requirements.txt
-streamlit run EnsembleBBB.py
+streamlit run BBBScope.py
 ```
 
-## Reproducing the models
+## Reproducing everything
 
-`training/` contains the full pipeline: curation, fingerprint generation,
-scaffold partitioning, the three validation protocols, and model export.
+`training/` holds the full pipeline — curation, fingerprints, scaffold
+partitioning, the three validation protocols, repeated partitions, the external
+overlap analysis and model export.
 
 ```bash
-python training/prepare_data.py      # curate, fingerprint, partition
-python training/train_protocols.py   # all three protocols, all models
-python training/export_models.py     # export what the app serves
+python training/prepare_data.py          # curate, fingerprint, partition
+python training/train_protocols.py       # three protocols, all models
+python training/repeated_partitions.py   # confidence intervals
+python training/check_external_overlap.py
+python training/export_models.py         # export what the app serves
 ```
 
 Hyperparameters are those of the originally published models, so the comparison
 isolates validation protocol from modelling choices: random forest with 100
-trees, SVC with C = 10 and gamma = 0.1, k-nearest neighbours with k = 5, and
-XGBoost with 100 rounds. No tuning was performed.
+trees, SVC with C = 10 and γ = 0.1, k-nearest neighbours with k = 5, XGBoost with
+100 rounds. No tuning was performed.
 
 ## Data
 
-[B3DB](https://github.com/theochem/B3DB) (Meng et al.), 7 794 molecules after
-curation: 4 948 BBB+ and 2 846 BBB−, an imbalance ratio of 1.74.
+[B3DB](https://github.com/theochem/B3DB) (Meng et al., *Sci Data* **8** (2021)
+289), 7 794 molecules after curation: 4 948 BBB+ and 2 846 BBB−, imbalance ratio
+1.74.
+
+One caveat inherited from the endpoint: binary labels derived from brain-to-plasma
+ratios conflate passive permeability with active efflux. Atenolol and loratadine,
+both poorly brain-penetrant in practice, are labelled permeable in B3DB. No
+classifier trained on these labels can distinguish a compound that does not cross
+from one that crosses and is pumped back out.
 
 ## Citation
 
-A manuscript reporting the corrected analysis is in preparation. Until it
-appears, cite the repository and note that the preprint
+A manuscript reporting the corrected analysis is in preparation. The preprint
 ([Research Square, 2023](https://www.researchsquare.com/article/rs-3752408/v1))
-reports the uncorrected figures and has been superseded.
+reports the uncorrected figures and is superseded.
 
 ## Licence
 
