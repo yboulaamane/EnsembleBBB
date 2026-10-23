@@ -29,6 +29,30 @@ keys but degenerates for wider fingerprints, flagging 63 % of a test set at
 far fewer descriptors than compounds. The similarity domain has no such failure
 mode.
 
+## Which descriptor to use
+
+The four are not interchangeable, and the differences appear where they matter
+most. Matthews correlation coefficient on the held-out partition, split by
+distance from training:
+
+| Descriptor | In scope | Edge of scope | Out of scope |
+|---|---|---|---|
+| **MACCS keys** | **0.860** | **0.696** | 0.405 |
+| Avalon | 0.811 | 0.614 | **0.458** |
+| Topological torsion | 0.852 | 0.547 | 0.383 |
+| Morgan (ECFP4) | 0.858 | 0.512 | 0.231 |
+
+**Morgan matches MACCS on close analogues and then collapses** — the opposite of
+what a richer descriptor is usually assumed to do. Morgan encodes specific atom
+environments, so a novel chemotype sets bits the model has never seen. MACCS
+encodes generic features — counts of oxygens, hydrogen-bond donors, simple
+connectivity — which transfer across chemotypes. That matches the attribution
+analysis, where the strongest signals are cumulative polarity counts rather than
+particular functional groups.
+
+MACCS is the default. Avalon is worth trying for compounds far outside the
+training set.
+
 ## Performance
 
 Random forest on MACCS keys, across ten repeated scaffold partitions:

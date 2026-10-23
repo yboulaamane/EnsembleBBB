@@ -1,19 +1,15 @@
-"""Verify the exported artefacts work, and check predictions against B3DB.
+"""Exercise the app's logic without starting Streamlit.
 
-Two separate questions, which the first version of this script conflated:
-
-  1. Does the pipeline work - do the models load, do fingerprints compute, do
-     predictions come out aligned with their inputs?
-  2. Does the model agree with its own training labels?
-
-Pharmacological intuition is a third thing again, and where it disagrees with
-B3DB the disagreement is a property of the dataset, not of the model. Those
-cases are printed as commentary.
+The alignment check matters most: the nearest-neighbour display indexes the
+training structures CSV with a position taken from the packed fingerprint
+array. Those two files are written by separate scripts, so if their order ever
+diverges the app will confidently show the wrong molecule.
 """
 from __future__ import annotations
 
 import gzip
 import pickle
+import sys
 import warnings
 from pathlib import Path
 
@@ -25,88 +21,75 @@ from rdkit.Chem import AllChem, MACCSkeys
 warnings.filterwarnings("ignore")
 RDLogger.DisableLog("rdApp.*")
 
-HERE = Path(__file__).resolve().parent
-MODELS = HERE / "repo" / "models"
-PROJECT = HERE.parent
-
+MODELS = Path(__file__).resolve().parent.parent / "models"
 KIND = "maccs"
-AD_WARN = 0.5
 
-# "expected" is textbook pharmacology, not a B3DB label.
 PROBES = [
-    ("caffeine", "CN1C=NC2=C1C(=O)N(C)C(=O)N2C", "BBB+"),
-    ("diazepam", "CN1c2ccc(Cl)cc2C(c2ccccc2)=NCC1=O", "BBB+"),
-    ("propranolol", "CC(C)NCC(O)COc1cccc2ccccc12", "BBB+"),
-    ("atenolol", "CC(C)NCC(O)COc1ccc(CC(N)=O)cc1", "BBB-"),
-    ("domperidone", "O=C1Nc2ccccc2N1C1CCN(CCCN2C(=O)Nc3ccc(Cl)cc32)CC1", "BBB-"),
-    ("loratadine", "CCOC(=O)N1CCC(=C2c3ccc(Cl)cc3CCc3cccnc32)CC1", "BBB-"),
-    ("sucrose", "OCC1OC(OC2(CO)OC(CO)C(O)C2O)C(O)C(O)C1O", "BBB-"),
+    ("caffeine", "CN1C=NC2=C1C(=O)N(C)C(=O)N2C"),
+    ("sucrose", "OCC1OC(OC2(CO)OC(CO)C(O)C2O)C(O)C(O)C1O"),
+    ("cyclic tripeptide", "O=C1NC(Cc2ccccc2)C(=O)NC(CC(C)C)C(=O)NC1CO"),
+    ("fluorotelomer alcohol", "OCC(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F"),
 ]
 
+failures: list[str] = []
+
+
+def check(condition: bool, message: str) -> None:
+    print(f"  {'ok  ' if condition else 'FAIL'}  {message}")
+    if not condition:
+        failures.append(message)
+
+
+print("1. ARTEFACTS")
+bits = np.unpackbits(np.load(MODELS / "ad_train_morgan.npy"), axis=1)[:, :2048]
+training = pd.read_csv(MODELS / "ad_train_molecules.csv")
+check(len(bits) == len(training),
+      f"fingerprints and structures same length ({len(bits)} vs {len(training)})")
+
+# The decisive test: regenerating a structure's fingerprint must reproduce the
+# stored row at the same index. A silent reordering would fail here.
+rng = np.random.default_rng(0)
+misaligned = 0
+for index in rng.choice(len(training), size=50, replace=False):
+    mol = Chem.MolFromSmiles(training.iloc[index]["smiles"])
+    if mol is None:
+        continue
+    regenerated = np.array(AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=2048))
+    if not np.array_equal(regenerated, bits[index]):
+        misaligned += 1
+check(misaligned == 0, f"50 sampled rows align with their structures ({misaligned} off)")
+
+print("\n2. PREDICTION")
 columns = np.load(MODELS / f"columns_{KIND}.npy")
 with gzip.open(MODELS / f"rf_{KIND}.pkl.gz", "rb") as fh:
     model = pickle.load(fh)
 
-packed = np.load(MODELS / "ad_train_morgan.npy")
-bits = np.unpackbits(packed, axis=1)[:, :2048]
-reference = []
+vectors = []
 for row in bits:
     vector = DataStructs.ExplicitBitVect(2048)
     vector.SetBitsFromList([int(i) for i in np.flatnonzero(row)])
-    reference.append(vector)
+    vectors.append(vector)
 
-b3db = pd.read_csv(PROJECT / "rdkit-bbb" / "b3db.csv")
-labels: dict[str, int] = {}
-for smiles, label in zip(b3db["SMILES"], b3db["Class"]):
+print(f"  {'compound':<24}{'P(BBB+)':>9}{'sim':>7}  nearest training molecule")
+for name, smiles in PROBES:
     mol = Chem.MolFromSmiles(smiles)
-    if mol is not None:
-        labels.setdefault(Chem.MolToSmiles(mol), int(label))
-
-print("1. PIPELINE")
-print("-" * 68)
-rows = []
-for name, smiles, expected in PROBES:
-    mol = Chem.MolFromSmiles(smiles)
-    assert mol is not None, f"{name} failed to parse"
     features = np.array(MACCSkeys.GenMACCSKeys(mol))[columns].reshape(1, -1)
     probability = float(model.predict_proba(features.astype(float))[0, 1])
-    query = AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=2048)
-    similarity = max(DataStructs.BulkTanimotoSimilarity(query, reference))
-    rows.append({
-        "name": name,
-        "predicted": "BBB+" if probability >= 0.5 else "BBB-",
-        "probability": probability,
-        "similarity": similarity,
-        "b3db": {1: "BBB+", 0: "BBB-"}.get(labels.get(Chem.MolToSmiles(mol)), "absent"),
-        "textbook": expected,
-    })
-print(f"models load, fingerprints compute, {len(rows)} predictions returned")
+    scores = DataStructs.BulkTanimotoSimilarity(
+        AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=2048), vectors)
+    best = int(np.argmax(scores))
+    neighbour = training.iloc[best]
+    print(f"  {name:<24}{probability:>9.3f}{scores[best]:>7.3f}  "
+          f"{neighbour['smiles'][:42]}")
+    check(Chem.MolFromSmiles(neighbour["smiles"]) is not None,
+          f"{name}: neighbour structure is valid")
 
-mixed = ["CN1C=NC2=C1C(=O)N(C)C(=O)N2C", "not_a_smiles",
-         "CC(C)NCC(O)COc1ccc(CC(N)=O)cc1"]
+print("\n3. ALIGNMENT WITH AN UNPARSEABLE ENTRY")
+mixed = [PROBES[0][1], "not_a_smiles", PROBES[1][1]]
 kept = [s for s in mixed if Chem.MolFromSmiles(s) is not None]
 failed = [s for s in mixed if Chem.MolFromSmiles(s) is None]
-assert kept == [mixed[0], mixed[2]] and failed == ["not_a_smiles"]
-print("alignment holds when an entry fails to parse")
+check(kept == [mixed[0], mixed[2]] and failed == ["not_a_smiles"],
+      "valid entries stay paired with their own inputs")
 
-print("\n2. AGREEMENT WITH B3DB LABELS")
-print("-" * 68)
-print(f"{'compound':<14}{'B3DB':<9}{'predicted':<11}{'P(BBB+)':<10}{'nn_sim':<9}")
-scored = [r for r in rows if r["b3db"] != "absent"]
-for r in scored:
-    mark = "ok" if r["predicted"] == r["b3db"] else "MISS"
-    print(f"{r['name']:<14}{r['b3db']:<9}{r['predicted']:<11}"
-          f"{r['probability']:<10.3f}{r['similarity']:<9.3f}{mark}")
-agree = sum(r["predicted"] == r["b3db"] for r in scored)
-print(f"\n{agree}/{len(scored)} agree with B3DB "
-      f"(all are training compounds, so disagreement is model error)")
-
-print("\n3. WHERE B3DB DISAGREES WITH PHARMACOLOGY")
-print("-" * 68)
-for r in rows:
-    if r["b3db"] != "absent" and r["b3db"] != r["textbook"]:
-        print(f"{r['name']:<14}B3DB says {r['b3db']}, textbook says {r['textbook']}")
-for r in rows:
-    if r["b3db"] == "absent":
-        print(f"{r['name']:<14}absent from B3DB; model says {r['predicted']} "
-              f"(similarity {r['similarity']:.2f})")
+print(f"\n{'PASSED' if not failures else f'{len(failures)} CHECK(S) FAILED'}")
+sys.exit(1 if failures else 0)

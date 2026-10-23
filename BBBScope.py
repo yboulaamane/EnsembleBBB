@@ -20,6 +20,7 @@ from PIL import Image
 from rdkit import Chem, DataStructs, RDLogger
 from rdkit.Avalon.pyAvalonTools import GetAvalonFP
 from rdkit.Chem import AllChem, Descriptors, MACCSkeys
+from rdkit.Chem.Draw import rdMolDraw2D
 from rdkit.Chem.rdMolDescriptors import GetHashedTopologicalTorsionFingerprintAsBitVect
 
 RDLogger.DisableLog("rdApp.*")
@@ -27,30 +28,49 @@ RDLogger.DisableLog("rdApp.*")
 HERE = Path(__file__).resolve().parent
 MODELS = HERE / "models"
 
+# Accuracy by descriptor and distance from training, measured on the held-out
+# scaffold partition. Morgan is the worst choice where a user most needs help,
+# so the app says so rather than presenting the four as interchangeable.
 FINGERPRINTS = {
-    "MACCS keys": "maccs",
-    "Morgan (ECFP4)": "morgan",
-    "Avalon": "avalon",
-    "Topological torsion": "topological_torsion",
+    "MACCS keys": ("maccs", "Recommended. Best overall and at the edge of scope."),
+    "Avalon": ("avalon", "Best for compounds far from the training set."),
+    "Topological torsion": ("topological_torsion", "Comparable to MACCS in scope."),
+    "Morgan (ECFP4)": ("morgan", "Matches MACCS in scope, but degrades sharply outside it."),
 }
 
-# Accuracy measured on held-out compounds, by distance from the training set.
-# These bands are what the name refers to.
 SCOPE_BANDS = [
-    (0.50, "In scope", "about 94 % accurate", "#1baf7a"),
-    (0.30, "Edge of scope", "about 88 % accurate", "#eb6834"),
-    (0.00, "Out of scope", "about 76 % accurate", "#c2352f"),
+    (0.50, "In scope", "~94 % accurate", "#1baf7a"),
+    (0.30, "Edge of scope", "~88 % accurate", "#eb6834"),
+    (0.00, "Out of scope", "~76 % accurate", "#c2352f"),
 ]
 
-# Chosen to span the scope bands rather than to flatter the model. The last
-# entry is the instructive one: a confident-looking 0.86 on a structure the
-# model has never seen anything like.
-EXAMPLE = "\n".join([
-    "CN1C=NC2=C1C(=O)N(C)C(=O)N2C",                           # caffeine, in scope
-    "OCC1OC(OC2(CO)OC(CO)C(O)C2O)C(O)C(O)C1O",                # sucrose, in scope
-    "O=C1NC(Cc2ccccc2)C(=O)NC(CC(C)C)C(=O)NC1CO",             # cyclic peptide, edge
-    "OCC(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F",   # fluorotelomer, out
-])
+EXAMPLES = {
+    "Spanning the scope": [
+        ("caffeine", "CN1C=NC2=C1C(=O)N(C)C(=O)N2C"),
+        ("sucrose", "OCC1OC(OC2(CO)OC(CO)C(O)C2O)C(O)C(O)C1O"),
+        ("cyclic tripeptide", "O=C1NC(Cc2ccccc2)C(=O)NC(CC(C)C)C(=O)NC1CO"),
+        ("fluorotelomer alcohol", "OCC(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F"),
+    ],
+    "CNS drugs": [
+        ("diazepam", "CN1c2ccc(Cl)cc2C(c2ccccc2)=NCC1=O"),
+        ("fluoxetine", "CNCCC(Oc1ccc(C(F)(F)F)cc1)c1ccccc1"),
+        ("haloperidol", "O=C(CCCN1CCC(O)(c2ccc(Cl)cc2)CC1)c1ccc(F)cc1"),
+        ("levodopa", "N[C@@H](Cc1ccc(O)c(O)c1)C(=O)O"),
+        ("donepezil", "COc1cc2c(cc1OC)C(=O)C(CC1CCN(Cc3ccccc3)CC1)C2"),
+    ],
+    "Peripherally restricted": [
+        ("atenolol", "CC(C)NCC(O)COc1ccc(CC(N)=O)cc1"),
+        ("loratadine", "CCOC(=O)N1CCC(=C2c3ccc(Cl)cc3CCc3cccnc32)CC1"),
+        ("domperidone", "O=C1Nc2ccccc2N1C1CCN(CCCN2C(=O)Nc3ccc(Cl)cc32)CC1"),
+        ("cetirizine", "OC(=O)COCCN1CCN(C(c2ccccc2)c2ccc(Cl)cc2)CC1"),
+    ],
+    "Novel chemotypes": [
+        ("crown ether", "C1COCCOCCOCCOCCOCCO1"),
+        ("porphyrin core", "c1cc2cc3ccc(cc4ccc(cc5ccc(cc1n2)[nH]5)n4)[nH]3"),
+        ("adamantanamine", "NC12CC3CC(CC(C3)C1)C2"),
+        ("alkyl sulfonate", "CCCCCCCCCCCCCCCCCCS(=O)(=O)O"),
+    ],
+}
 
 st.set_page_config(page_title="BBBScope", page_icon="\U0001f9e0", layout="wide")
 
@@ -72,15 +92,22 @@ def load_columns(kind: str) -> np.ndarray:
 
 
 @st.cache_resource
-def load_reference() -> list:
-    """Training fingerprints, unpacked once, for the scope calculation."""
+def load_reference() -> tuple[list, pd.DataFrame]:
+    """Training fingerprints and the structures they belong to.
+
+    Both are written by the export scripts in the same order; the app relies
+    on that alignment to name the nearest neighbour.
+    """
     bits = np.unpackbits(np.load(MODELS / "ad_train_morgan.npy"), axis=1)[:, :2048]
-    reference = []
+    vectors = []
     for row in bits:
         vector = DataStructs.ExplicitBitVect(2048)
         vector.SetBitsFromList([int(i) for i in np.flatnonzero(row)])
-        reference.append(vector)
-    return reference
+        vectors.append(vector)
+    molecules = pd.read_csv(MODELS / "ad_train_molecules.csv")
+    if len(molecules) != len(vectors):
+        raise ValueError("training fingerprints and structures are out of step")
+    return vectors, molecules
 
 
 def fingerprint(mol, kind: str) -> np.ndarray:
@@ -94,12 +121,7 @@ def fingerprint(mol, kind: str) -> np.ndarray:
 
 
 def parse(lines: list[str]) -> tuple[list, list[str], list[str]]:
-    """Molecules and their SMILES, kept aligned, plus the ones that failed.
-
-    Alignment is the point: an earlier version dropped unparseable entries from
-    the feature matrix but not from the label column, so predictions were
-    silently attached to the wrong molecules.
-    """
+    """Molecules and their SMILES, kept aligned, plus the ones that failed."""
     mols, kept, failed = [], [], []
     for line in lines:
         smiles = line.strip()
@@ -121,16 +143,25 @@ def band(similarity: float) -> tuple[str, str, str]:
     return SCOPE_BANDS[-1][1:]
 
 
+def depict(mol, size=(320, 240)) -> bytes:
+    drawer = rdMolDraw2D.MolDraw2DCairo(*size)
+    drawer.drawOptions().bondLineWidth = 2
+    drawer.drawOptions().clearBackground = False
+    rdMolDraw2D.PrepareAndDrawMolecule(drawer, mol)
+    drawer.FinishDrawing()
+    return drawer.GetDrawingText()
+
+
 logo = HERE / "logo.png"
 if logo.exists():
-    st.image(Image.open(logo), use_container_width=True)
+    st.image(Image.open(logo), width="stretch")
 
 st.markdown("""
 Predicts blood-brain barrier permeability from structure, and reports how far
 each compound sits from the data the model was trained on.
 
 **That distance is the point.** On held-out compounds, accuracy runs from about
-**76 %** for structures unlike anything in training to about **95 %** for close
+**76 %** for structures unlike anything in training to about **94 %** for close
 analogues. A prediction without that context is not interpretable, so BBBScope
 returns it with every result.
 """)
@@ -140,22 +171,19 @@ with st.sidebar:
     uploaded = st.file_uploader("CSV with a `Smiles` column", type=["csv"])
     if "typed" not in st.session_state:
         st.session_state.typed = ""
-    if st.button("Load example", help="Four compounds spanning the scope bands"):
-        st.session_state.typed = EXAMPLE
-    typed = st.text_area("or paste SMILES, one per line", height=170, key="typed")
+    example_set = st.selectbox("Example set", list(EXAMPLES))
+    if st.button("Load example"):
+        st.session_state.typed = "\n".join(s for _, s in EXAMPLES[example_set])
+    typed = st.text_area("or paste SMILES, one per line", height=150, key="typed")
 
-    st.header("Settings")
+    st.header("Descriptor")
     fingerprint_name = st.selectbox("Fingerprint", list(FINGERPRINTS))
-    show_properties = st.checkbox("Include physicochemical properties", value=False)
-    st.caption(
-        "Random forest, trained on a scaffold-partitioned split. Consensus "
-        "modelling gave no reliable advantage over it and is not served; see the "
-        "README."
-    )
+    st.caption(FINGERPRINTS[fingerprint_name][1])
+    show_detail = st.checkbox("Show per-compound detail", value=True)
     run = st.button("Predict", type="primary")
 
 if not run:
-    st.info("Add input in the sidebar, then press Predict.")
+    st.info("Pick an example or paste SMILES in the sidebar, then press Predict.")
     st.stop()
 
 if uploaded is not None:
@@ -178,17 +206,22 @@ if failed:
     st.warning(f"{len(failed)} entries could not be parsed and were skipped: "
                + ", ".join(failed[:5]) + ("…" if len(failed) > 5 else ""))
 
-kind = FINGERPRINTS[fingerprint_name]
+kind = FINGERPRINTS[fingerprint_name][0]
 
 with st.spinner("Predicting…"):
     columns = load_columns(kind)
     features = np.vstack([fingerprint(m, kind) for m in mols])[:, columns]
     probability = load_model(kind).predict_proba(features.astype(float))[:, 1]
-    reference = load_reference()
-    similarity = np.array([
-        max(DataStructs.BulkTanimotoSimilarity(
-            AllChem.GetMorganFingerprintAsBitVect(m, 2, nBits=2048), reference))
-        for m in mols])
+
+    vectors, training = load_reference()
+    similarity, neighbour_index = [], []
+    for mol in mols:
+        scores = DataStructs.BulkTanimotoSimilarity(
+            AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=2048), vectors)
+        best = int(np.argmax(scores))
+        similarity.append(scores[best])
+        neighbour_index.append(best)
+    similarity = np.asarray(similarity)
 
 bands = [band(s) for s in similarity]
 results = pd.DataFrame({
@@ -197,45 +230,71 @@ results = pd.DataFrame({
     "P(BBB+)": probability.round(3),
     "Scope": [b[0] for b in bands],
     "Similarity": similarity.round(3),
-    "Expected accuracy": [b[1] for b in bands],
+    "Nearest training molecule": training.loc[neighbour_index, "smiles"].to_numpy(),
+    "Its label": ["BBB+" if v else "BBB−"
+                  for v in training.loc[neighbour_index, "label"]],
+    "MW": [round(Descriptors.MolWt(m), 1) for m in mols],
+    "cLogP": [round(Descriptors.MolLogP(m), 2) for m in mols],
+    "TPSA": [round(Descriptors.TPSA(m), 1) for m in mols],
+    "HBD": [Descriptors.NumHDonors(m) for m in mols],
 })
 
-if show_properties:
-    results["MW"] = [round(Descriptors.MolWt(m), 1) for m in mols]
-    results["cLogP"] = [round(Descriptors.MolLogP(m), 2) for m in mols]
-    results["TPSA"] = [round(Descriptors.TPSA(m), 1) for m in mols]
-    results["HBD"] = [Descriptors.NumHDonors(m) for m in mols]
-
-counts = {label: sum(b[0] == label for b in bands)
-          for _, label, _, _ in SCOPE_BANDS}
-left, middle, right = st.columns(3)
-for column, (_, label, _, colour) in zip((left, middle, right), SCOPE_BANDS):
+counts = {label: sum(b[0] == label for b in bands) for _, label, _, _ in SCOPE_BANDS}
+for column, (_, label, accuracy, colour) in zip(st.columns(3), SCOPE_BANDS):
     column.markdown(
         f"<div style='padding:0.6rem 0.9rem;border-left:5px solid {colour};"
         f"background:rgba(128,128,128,0.08);border-radius:4px'>"
         f"<div style='font-size:1.6rem;font-weight:700'>{counts[label]}</div>"
-        f"<div style='opacity:0.8'>{label}</div></div>",
+        f"<div style='opacity:0.85'>{label}</div>"
+        f"<div style='opacity:0.6;font-size:0.8rem'>{accuracy}</div></div>",
         unsafe_allow_html=True)
 
 st.subheader("Predictions")
-st.dataframe(
-    results.style.apply(
-        lambda row: [f"color: {band(row['Similarity'])[2]}"
-                     if col in ("Scope", "Similarity") else "" for col in results.columns],
-        axis=1),
-    use_container_width=True)
+st.dataframe(results, width="stretch", hide_index=True)
 
 outside = counts["Out of scope"] + counts["Edge of scope"]
 if outside:
     st.warning(
         f"{outside} of {len(results)} compounds fall below Tanimoto 0.5 to the "
-        "training set. Their predictions are less reliable, and should be read as "
+        "training set. Their predictions are less reliable and should be read as "
         "indicative rather than as classifications.")
 
 buffer = io.StringIO()
 results.to_csv(buffer, index=False)
 st.download_button("Download predictions (CSV)", data=buffer.getvalue(),
                    file_name="bbbscope_predictions.csv", mime="text/csv")
+
+if show_detail:
+    st.subheader("Per-compound detail")
+    for i, mol in enumerate(mols):
+        label, accuracy, colour = bands[i]
+        neighbour = training.iloc[neighbour_index[i]]
+        with st.container(border=True):
+            query_col, arrow_col, neighbour_col, text_col = st.columns([3, 1, 3, 5])
+            query_col.image(depict(mol), caption=f"Query {i + 1}")
+            arrow_col.markdown(
+                "<div style='text-align:center;padding-top:3.2rem;font-size:1.4rem;"
+                "opacity:0.45'>↔</div>", unsafe_allow_html=True)
+            neighbour_mol = Chem.MolFromSmiles(neighbour["smiles"])
+            if neighbour_mol is not None:
+                neighbour_col.image(
+                    depict(neighbour_mol),
+                    caption=f"Nearest in training · "
+                            f"{'BBB+' if neighbour['label'] else 'BBB−'}")
+            text_col.markdown(
+                f"**{results.loc[i, 'Prediction']}** &nbsp; P(BBB+) = "
+                f"{probability[i]:.3f}\n\n"
+                f"<span style='color:{colour};font-weight:600'>{label}</span> "
+                f"&nbsp;·&nbsp; Tanimoto {similarity[i]:.3f} &nbsp;·&nbsp; {accuracy}\n\n"
+                f"MW {results.loc[i, 'MW']} &nbsp;·&nbsp; "
+                f"cLogP {results.loc[i, 'cLogP']} &nbsp;·&nbsp; "
+                f"TPSA {results.loc[i, 'TPSA']} &nbsp;·&nbsp; "
+                f"HBD {results.loc[i, 'HBD']}",
+                unsafe_allow_html=True)
+            if similarity[i] < 0.5:
+                text_col.caption(
+                    "The nearest training molecule is not a close analogue, so this "
+                    "prediction is an extrapolation.")
 
 with st.expander("How the scope is defined"):
     st.markdown("""
@@ -252,7 +311,30 @@ compounds:
 A leverage-based domain was also evaluated. It behaves for MACCS keys but
 degenerates for wider fingerprints, flagging 63 % of a test set at 1 951
 descriptors, because the usual warning leverage assumes far fewer descriptors
-than compounds. The similarity domain does not have that failure mode.
+than compounds. The similarity domain has no such failure mode.
+""")
+
+with st.expander("Which descriptor to use"):
+    st.markdown("""
+The four are not interchangeable, and the differences appear where they matter
+most. Matthews correlation coefficient on the held-out partition, by distance
+from training:
+
+| Descriptor | In scope | Edge of scope | Out of scope |
+|---|---|---|---|
+| **MACCS keys** | **0.860** | **0.696** | 0.405 |
+| Avalon | 0.811 | 0.614 | **0.458** |
+| Topological torsion | 0.852 | 0.547 | 0.383 |
+| Morgan (ECFP4) | 0.858 | 0.512 | 0.231 |
+
+Morgan matches MACCS on close analogues and then collapses, which is the
+opposite of what a richer descriptor is usually assumed to do. Morgan encodes
+specific atom environments, so a novel chemotype sets bits the model has never
+seen. MACCS encodes generic features — counts of oxygens, hydrogen-bond donors,
+simple connectivity — which transfer across chemotypes.
+
+MACCS is the default. Avalon is worth trying for compounds far outside the
+training set.
 """)
 
 with st.expander("Model details and performance"):
@@ -262,10 +344,10 @@ Across ten repeated scaffold partitions, random forest on MACCS keys:
 **AUC 0.934 (0.923–0.948), MCC 0.693 (0.666–0.734)**. On compounds genuinely
 external to the training data, **AUC 0.954**.
 
-Earlier releases of this app, under the name EnsembleBBB, reported substantially
-higher figures. Those were inflated by two faults: the minority class was
-oversampled before the data were partitioned, and the partition was random over
-a dataset in which roughly half the molecules share a descriptor vector with
-another molecule, because the fingerprints ignore stereochemistry. Both are
-corrected here.
+Earlier releases, under the name EnsembleBBB, reported substantially higher
+figures. Those were inflated by two faults: the minority class was oversampled
+before the data were partitioned, and the partition was random over a dataset in
+which roughly half the molecules share a descriptor vector with another
+molecule, because the fingerprints ignore stereochemistry. Both are corrected
+here.
 """)
