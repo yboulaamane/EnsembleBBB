@@ -20,8 +20,21 @@ from PIL import Image
 from rdkit import Chem, DataStructs, RDLogger
 from rdkit.Avalon.pyAvalonTools import GetAvalonFP
 from rdkit.Chem import AllChem, Descriptors, MACCSkeys
-from rdkit.Chem.Draw import rdMolDraw2D
 from rdkit.Chem.rdMolDescriptors import GetHashedTopologicalTorsionFingerprintAsBitVect
+
+# Structure depiction needs RDKit's Cairo backend, which in turn needs system
+# libraries (libXrender, libcairo) that slim container images often omit.
+# packages.txt installs them, but a prediction tool should not fail to start
+# over a drawing library, so the import is optional and the app degrades to a
+# table if it is unavailable.
+try:
+    from rdkit.Chem.Draw import rdMolDraw2D
+    DEPICTION = True
+    DEPICTION_ERROR = ""
+except ImportError as exc:                       # pragma: no cover
+    rdMolDraw2D = None
+    DEPICTION = False
+    DEPICTION_ERROR = str(exc)
 
 RDLogger.DisableLog("rdApp.*")
 
@@ -143,13 +156,18 @@ def band(similarity: float) -> tuple[str, str, str]:
     return SCOPE_BANDS[-1][1:]
 
 
-def depict(mol, size=(320, 240)) -> bytes:
-    drawer = rdMolDraw2D.MolDraw2DCairo(*size)
-    drawer.drawOptions().bondLineWidth = 2
-    drawer.drawOptions().clearBackground = False
-    rdMolDraw2D.PrepareAndDrawMolecule(drawer, mol)
-    drawer.FinishDrawing()
-    return drawer.GetDrawingText()
+def depict(mol, size=(320, 240)) -> bytes | None:
+    if not DEPICTION:
+        return None
+    try:
+        drawer = rdMolDraw2D.MolDraw2DCairo(*size)
+        drawer.drawOptions().bondLineWidth = 2
+        drawer.drawOptions().clearBackground = False
+        rdMolDraw2D.PrepareAndDrawMolecule(drawer, mol)
+        drawer.FinishDrawing()
+        return drawer.GetDrawingText()
+    except Exception:                            # pragma: no cover
+        return None
 
 
 logo = HERE / "logo.png"
@@ -266,21 +284,34 @@ st.download_button("Download predictions (CSV)", data=buffer.getvalue(),
 
 if show_detail:
     st.subheader("Per-compound detail")
+    if not DEPICTION:
+        st.caption(
+            "Structure depiction is unavailable in this deployment, so the "
+            "comparison below is shown as SMILES. Everything else is unaffected.")
     for i, mol in enumerate(mols):
         label, accuracy, colour = bands[i]
         neighbour = training.iloc[neighbour_index[i]]
+        neighbour_label = "BBB+" if neighbour["label"] else "BBB−"
         with st.container(border=True):
             query_col, arrow_col, neighbour_col, text_col = st.columns([3, 1, 3, 5])
-            query_col.image(depict(mol), caption=f"Query {i + 1}")
+            query_image = depict(mol)
+            if query_image:
+                query_col.image(query_image, caption=f"Query {i + 1}")
+            else:
+                query_col.caption(f"Query {i + 1}")
+                query_col.code(kept[i], language=None)
             arrow_col.markdown(
                 "<div style='text-align:center;padding-top:3.2rem;font-size:1.4rem;"
                 "opacity:0.45'>↔</div>", unsafe_allow_html=True)
             neighbour_mol = Chem.MolFromSmiles(neighbour["smiles"])
-            if neighbour_mol is not None:
+            neighbour_image = depict(neighbour_mol) if neighbour_mol else None
+            if neighbour_image:
                 neighbour_col.image(
-                    depict(neighbour_mol),
-                    caption=f"Nearest in training · "
-                            f"{'BBB+' if neighbour['label'] else 'BBB−'}")
+                    neighbour_image,
+                    caption=f"Nearest in training · {neighbour_label}")
+            else:
+                neighbour_col.caption(f"Nearest in training · {neighbour_label}")
+                neighbour_col.code(neighbour["smiles"], language=None)
             text_col.markdown(
                 f"**{results.loc[i, 'Prediction']}** &nbsp; P(BBB+) = "
                 f"{probability[i]:.3f}\n\n"
